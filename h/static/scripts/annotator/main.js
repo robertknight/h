@@ -1,7 +1,12 @@
 var Annotator = require('annotator');
 
-// Monkeypatch annotator!
-require('./monkey');
+// Scroll plugin for jQuery
+// TODO: replace me
+require('jquery-scrollintoview')
+
+// Polyfills
+var g = Annotator.Util.getGlobal();
+if (g.wgxpath) g.wgxpath.install();
 
 // Applications
 Annotator.Guest = require('./guest')
@@ -13,39 +18,15 @@ Annotator.Plugin.CrossFrame.Bridge = require('../bridge')
 Annotator.Plugin.CrossFrame.AnnotationSync = require('../annotation-sync')
 Annotator.Plugin.CrossFrame.Discovery = require('../discovery')
 
-// Document plugin
-require('../vendor/annotator.document');
-
 // Bucket bar
 require('./plugin/bucket-bar');
 
 // Toolbar
 require('./plugin/toolbar');
 
-// Drawing highlights
-require('./plugin/texthighlights');
-
 // Creating selections
 require('./plugin/textselection');
 
-// URL fragments
-require('./plugin/fragmentselector');
-
-// Anchoring dependencies
-require('diff-match-patch')
-require('dom-text-mapper')
-require('dom-text-matcher')
-require('page-text-mapper-core')
-require('text-match-engines')
-
-// Anchoring plugins
-require('./plugin/enhancedanchoring');
-require('./plugin/domtextmapper');
-require('./plugin/fuzzytextanchors');
-require('./plugin/pdf');
-require('./plugin/textquote');
-require('./plugin/textposition');
-require('./plugin/textrange');
 
 var Klass = Annotator.Host;
 var docs = 'https://github.com/hypothesis/h/blob/master/README.rst#customized-embedding';
@@ -54,6 +35,15 @@ var options = {
   BucketBar: {container: '.annotator-frame'},
   Toolbar: {container: '.annotator-frame'}
 };
+
+// Document metadata plugins
+if (window.PDFViewerApplication) {
+  require('./plugin/pdf')
+  options['PDF'] = {};
+} else {
+  require('../vendor/annotator.document');
+  options['Document'] = {};
+}
 
 if (window.hasOwnProperty('hypothesisRole')) {
   if (typeof window.hypothesisRole === 'function') {
