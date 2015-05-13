@@ -32,13 +32,14 @@ var Klass = Annotator.Host;
 var docs = 'https://github.com/hypothesis/h/blob/master/README.rst#customized-embedding';
 var options = {
   app: jQuery('link[type="application/annotator+html"]').attr('href'),
-  BucketBar: {container: '.annotator-frame'},
+  BucketBar: {container: '.annotator-frame', scrollables: ['body']},
   Toolbar: {container: '.annotator-frame'}
 };
 
 // Document metadata plugins
 if (window.PDFViewerApplication) {
   require('./plugin/pdf')
+  options['BucketBar']['scrollables'] = ['#viewerContainer']
   options['PDF'] = {};
 } else {
   require('../vendor/annotator.document');
