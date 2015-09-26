@@ -9,24 +9,24 @@
   </dropdown-menu-btn>
   <ul class="dropdown-menu pull-right group-list publish-annotation-btn__dropdown-menu" role="menu">
     <li ng-click="vm.setPrivacy('shared')">
-      <div class="group-item">
-        <div class="group-icon-container">
+      <div class="group-list__item">
+        <div class="group-list__icon-container">
           <i class="small" ng-class="'h-icon-' + vm.group.type"></i>
         </div>
-        <div class="group-details">
-          <div class="group-name-container">
+        <div class="group-list__details">
+          <div>
             <a href="" class="group-name-link" ng-bind="vm.group.name"></a>
           </div>
         </div>
       </div>
     </li>
     <li ng-click="vm.setPrivacy('private')">
-      <div class="group-item">
-        <div class="group-icon-container">
+      <div class="group-list__item">
+        <div class="group-list__icon-container">
           <i class="small h-icon-lock"></i>
         </div>
-        <div class="group-details">
-          <div class="group-name-container">
+        <div class="group-list__details">
+          <div>
             <a href="" class="group-name-link" ng-bind="vm.privateLabel"></a>
           </div>
         </div>

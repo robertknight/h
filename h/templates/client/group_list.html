@@ -12,15 +12,15 @@
   </span>
   <ul class="dropdown-menu pull-right" role="menu">
     <li ng-repeat="group in sortedGroups()">
-      <div ng-class="{'group-item': true, selected: group.id == groups.focused().id}"
+      <div ng-class="{'group-list__item': true, selected: group.id == groups.focused().id}"
            ng-click="groups.focus(group.id)">
         <!-- the group icon !-->
-        <div class="group-icon-container" ng-switch on="group.public">
+        <div class="group-list__icon-container" ng-switch on="group.public">
           <i class="h-icon-public" ng-switch-when="true"></i>
           <i class="h-icon-group" ng-switch-default></i>
         </div>
         <!-- the group name and share link !-->
-        <div class="group-details">
+        <div class="group-list__details">
           <div class="group-name-container">
             <a class="group-name-link"
                href=""
@@ -28,17 +28,17 @@
                {{group.name}}
             </a>
           </div>
-          <div class="share-link-container" ng-click="$event.stopPropagation()" ng-if="!group.public">
+          <div class="share-link__container" ng-click="$event.stopPropagation()" ng-if="!group.public">
             <div>
-              <a class="share-link-toggle"
+              <a class="share-link__toggle"
                  href=""
                  ng-click="toggleShareLink(group.id)"
                  title="Invite others to join this group">
                 Invite others to join this group
               </a>
             </div>
-            <div class="share-link-expander" ng-show="shouldShowShareLink(group.id)">
-              <input class="share-link-field" data-group-id="{{group.id}}" ng-value="group.url">
+            <div class="share-link__expander" ng-show="shouldShowShareLink(group.id)">
+              <input class="share-link__field" data-group-id="{{group.id}}" ng-value="group.url">
               <p>
                 You can invite other people to join this group
                 by sending them this link
@@ -48,10 +48,10 @@
         </div>
       </div>
     </li>
-    <li class="new-group-btn">
-      <div class="group-item" ng-click="createNewGroup()">
-        <div class="group-icon-container"><i class="h-icon-add"></i></div>
-        <div class="group-details">
+    <li class="group-list__new-group-btn">
+      <div class="group-list__item" ng-click="createNewGroup()">
+        <div class="group-list__icon-container"><i class="h-icon-add"></i></div>
+        <div class="group-list__details">
           <a href="" title="Create a new group to share annotations">
             New group
           </a>

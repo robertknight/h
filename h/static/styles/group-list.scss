@@ -1,10 +1,9 @@
 /* The groups dropdown list (<group-list>) and
    'Post to <Group or Only Me>' buttons (<publish-annotation-btn>)
  */
-
-$group-list-width: 270px;
-
 .group-list {
+  $group-list-width: 270px;
+
   .dropdown {
     white-space: nowrap;
   }
@@ -19,7 +18,7 @@ $group-list-width: 270px;
     }
   }
 
-  .group-item {
+  &__item {
     display: flex;
     flex-direction: row;
 
@@ -27,7 +26,7 @@ $group-list-width: 270px;
     cursor: pointer;
 
     &:hover {
-      .share-link-toggle {
+      .share-link__toggle {
         color: inherit;
       }
       .group-name-link {
@@ -42,45 +41,19 @@ $group-list-width: 270px;
     }
   }
 
-  .group-icon-container {
+  &__icon-container {
     margin-right: 10px;
   }
 
-  .group-details {
+  &__details {
     margin-right: 20px;
     flex-shrink: 1;
   }
 
-  .share-link-container {
-    font-size: $body1-font-size;
-    line-height: $body1-line-height;
-    margin-top: 1px;
-    white-space: normal;
-  }
-
-  .share-link-toggle {
-    color: $gray-light;
-  }
-
-  .share-link-toggle:hover {
-    text-decoration: underline;
-    color: $gray-dark;
-  }
-
-  .share-link-field {
-    padding: 3px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    margin-top: 12px;
-    margin-bottom: 8px;
-    border: 1px solid $gray-lighter;
-    width: 100%;
-  }
-
-  .new-group-btn {
+  &__new-group-btn {
     background-color: $gray-lightest;
 
-    .group-item {
+    .group-list__item {
       padding-top: 12px;
       padding-bottom: 12px;
     }
@@ -88,5 +61,33 @@ $group-list-width: 270px;
     .h-icon-add {
       font-weight: bold;
     }
+  }
+}
+
+.share-link {
+  &__container {
+    font-size: $body1-font-size;
+    line-height: $body1-line-height;
+    margin-top: 1px;
+    white-space: normal;
+  }
+
+  &__toggle {
+    color: $gray-light;
+
+    &:hover {
+      text-decoration: underline;
+      color: $gray-dark;
+    }
+  }
+
+  &__field {
+    padding: 3px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-top: 12px;
+    margin-bottom: 8px;
+    border: 1px solid $gray-lighter;
+    width: 100%;
   }
 }
