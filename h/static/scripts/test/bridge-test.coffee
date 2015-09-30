@@ -13,6 +13,7 @@ describe 'Bridge', ->
 
   beforeEach module('h')
   beforeEach inject (_bridge_) ->
+    start = Date.now()
     bridge = _bridge_
 
     createChannel = ->
@@ -24,6 +25,7 @@ describe 'Bridge', ->
 
     sandbox.stub(window, 'addEventListener')
     sandbox.stub(window, 'removeEventListener')
+    console.log('ran beforeEach() in %dms', Date.now() - start)
 
   afterEach ->
     sandbox.restore()
@@ -36,8 +38,13 @@ describe 'Bridge', ->
       assert.equal(channel.origin, 'http://example.com')
 
     it 'adds the channel to the .links property', ->
+      console.log('starting', this.test.title);
+      start = Date.now();
       channel = createChannel()
+      console.log('Created channel in %d ms', Date.now() - start);
+      console.log('bridge link count %dms', bridge.links.length)
       assert.include(bridge.links, {channel: channel, window: fakeWindow})
+      console.log('ending', this.test.title);
 
     it 'registers any existing listeners on the channel', ->
       message1 = sandbox.spy()
