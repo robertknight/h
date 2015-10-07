@@ -1,6 +1,30 @@
 (function (h) {
   'use strict';
 
+  // returns a promise for a variant of the square icon image at 'url'
+  // of size 'size', tinted with the CSS color 'tint'
+  function generateTintedIcon(url, size, tint) {
+  	var canvas = document.createElement('canvas');
+  	canvas.width = size;
+  	canvas.height = size;
+  	var img = new Image(size, size);
+
+  	return new Promise(function (resolve, reject) {
+  		img.addEventListener('load', function () {
+  			var ctx = canvas.getContext('2d');
+        ctx.fillStyle = tint;
+        ctx.fillRect(0, 0, size, size);
+        ctx.globalCompositeOperation = 'destination-in';
+  			ctx.drawImage(img, 0, 0);
+  			resolve(ctx.getImageData(0, 0, size, size));
+  		});
+  		img.addEventListener('error', function (err) {
+  			reject(err);
+  		});
+  		img.src = url;
+  	});
+  }
+
   // Cache the tab state constants.
   var states = h.TabState.states;
 
@@ -15,6 +39,34 @@
     19: 'images/browser-icon-inactive.png',
     38: 'images/browser-icon-inactive@2x.png'
   };
+
+  // generates tinted badge images for staging and development
+  // builds
+  function generateBadgeImages() {
+    var buildType;
+    h.settings.then(function (settings) {
+      var tintStyles = {
+        'staging': 'goldenrod',
+        'dev': 'tomato',
+      };
+      var tintStyle = tintStyles[settings.buildType];
+
+      if (tintStyle) {
+        [states.ACTIVE, states.INACTIVE].forEach(function (state) {
+          Object.keys(icons[state]).map(function (key) {
+            var size = parseInt(key);
+            generateTintedIcon(icons[state][size], size, tintStyle)
+              .then(function (imageData) {
+              icons[state][size] = imageData;
+            }).catch(function (err) {
+              console.error(err);
+            });
+          });
+        });
+      }
+    });
+  }
+  generateBadgeImages();
 
   // Fake localization function.
   function _(str) {
@@ -61,21 +113,32 @@
       chromeBrowserAction.setBadgeText({tabId: tabId, text: badgeText});
     }
 
+    /**
+     * Sets the icon for a browser tab.
+     */
+    function setIcon(tabId, iconDict) {
+      if (typeof iconDict['19'] === 'string') {
+        chromeBrowserAction.setIcon({tabId: tabId, path: iconDict})
+      } else {
+        chromeBrowserAction.setIcon({tabId: tabId, imageData: iconDict});
+      }
+    }
+
     /* Sets the active browser action appearance for the provided tab id. */
     this.activate = function(tabId) {
-      chromeBrowserAction.setIcon({tabId: tabId, path: icons[states.ACTIVE]});
+      setIcon(tabId, icons[states.ACTIVE]);
       setTitleIfNoBadge(tabId, _('Hypothesis is active'));
     };
 
     /* Sets the inactive browser action appearance for the provided tab id. */
     this.deactivate = function(tabId) {
-      chromeBrowserAction.setIcon({tabId: tabId, path: icons[states.INACTIVE]});
+      setIcon(tabId, icons[states.INACTIVE]);
       setTitleIfNoBadge(tabId, _('Hypothesis is inactive'));
     };
 
     /* Sets the errored browser action appearance for the provided tab id. */
     this.error = function(tabId) {
-      chromeBrowserAction.setIcon({tabId: tabId, path: icons[states.INACTIVE]});
+      setIcon(tabId, icons[states.INACTIVE]);
       setTitleAndBadgeText(tabId,  _('Hypothesis has failed to load'), '!');
     };
 
