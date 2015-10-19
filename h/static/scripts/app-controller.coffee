@@ -1,6 +1,7 @@
 angular = require('angular')
 
 events = require('./events');
+metrics = require('./metrics');
 
 module.exports = class AppController
   this.$inject = [
@@ -14,6 +15,8 @@ module.exports = class AppController
      session
   ) ->
     $controller('AnnotationUIController', {$scope})
+
+    metrics.record(metrics.eventTypes.APP_START)
 
     # This stores information the current userid.
     # It is initially undefined until resolved.

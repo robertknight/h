@@ -96,7 +96,8 @@ module.exports = class Guest extends Annotator
         uri = new URL(href, baseURI)
         uri.hash = ''
         uri = uri.toString()
-        return {uri, metadata}
+        installTime = window.annotator?.installTime
+        return {uri, metadata, installTime}
 
   _connectAnnotationSync: (crossframe) ->
     this.subscribe 'annotationDeleted', (annotation) =>

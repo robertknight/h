@@ -47,7 +47,11 @@ module.exports = class CrossFrame
           channel.destroy()
         else
           $rootScope.$apply =>
-            @frames.push({channel: channel, uri: info.uri})
+            @frames.push({
+              channel: channel,
+              uri: info.uri,
+              installTime: info.installTime
+              })
 
     this.connect = ->
       discovery = createDiscovery()

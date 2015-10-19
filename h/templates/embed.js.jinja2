@@ -1,7 +1,9 @@
 (function () {
 // Prevent double embedding
 if (typeof(window.annotator) === 'undefined') {
-    window.annotator = {};
+    window.annotator = {
+      installTime: Date.now(),
+    };
 } else {
     return;
 }

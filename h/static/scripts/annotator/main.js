@@ -52,5 +52,11 @@ Annotator.noConflict().$.noConflict(true)(function() {
     Klass = options.constructor;
     delete options.constructor;
   }
+
+  var installTime;
+  if (window.annotator.installTime) {
+    installTime = window.annotator.installTime;
+  }
   window.annotator = new Klass(document.body, options);
+  window.annotator.installTime = installTime;
 });
