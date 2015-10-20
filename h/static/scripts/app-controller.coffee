@@ -38,7 +38,10 @@ module.exports = class AppController
     $scope.isSidebar = $window.top isnt $window
 
     # Default sort
-    $scope.sort = name: 'Location'
+    $scope.sort = {
+      name: 'Location'
+      options: ['Newest', 'Oldest', 'Location']
+    }
 
     # Reload the view when the focused group changes or the
     # list of groups that the user is a member of changes
