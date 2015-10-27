@@ -45,7 +45,7 @@ module.exports = ['$http', '$parse', ($http, $parse) ->
                 <i class="h-icon-search"></i>
               </button>
               <button type="button" class="simple-search-icon btn btn-clean" ng-show="loading" disabled>
-                <span class="btn-icon"><span class="spinner"></span></span>
+                <span class="btn-icon"><spinner active="loading"></spinner></span>
               </button>
             </form>
             '''

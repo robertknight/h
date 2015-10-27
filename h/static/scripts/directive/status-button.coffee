@@ -15,7 +15,7 @@ module.exports = ['$compile', ($compile) ->
   template = '''
   <span class="btn-with-message">
     <span class="btn-message btn-message-loading">
-      <span class="btn-icon spinner"></span>
+      <spinner class="btn-icon"></spinner>
     </span>
     <span class="btn-message btn-message-success">
       <span class="btn-message-text">Saved!</span> <i class="btn-message-icon h-icon-check"></i>
