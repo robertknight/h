@@ -1,10 +1,3 @@
-# Angular
-angular:
-  filters: uglifyjs
-  output: scripts/vendor/angular.min.js
-  contents: ../../node_modules/angular/angular.js
-
-
 # the full version of bootstrap, used
 # by admin pages.
 #
@@ -62,20 +55,14 @@ admin_js:
     - bootstrap_full_js
 
 
-# Configuration
-config:
-  contents:
-    - h:static/scripts/config.bundle.js
-
 # the H client application
 app_js:
   contents:
     - jquery
-    - angular
     - katex
     - url
     - h:static/scripts/app.bundle.js
-    - config
+
 
 app_css:
   output: styles/app.min.css

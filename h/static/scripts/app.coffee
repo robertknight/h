@@ -7,7 +7,6 @@ if window.RAVEN_CONFIG
 require('autofill-event')
 angular = require('angular')
 
-
 streamer = require('./streamer')
 
 resolve =
@@ -164,3 +163,5 @@ module.exports = angular.module('h', [
 .run(setupCrossFrame)
 .run(setupHttp)
 .run(setupHost)
+
+require('./config/module')

@@ -10,7 +10,6 @@ module.exports = {
     // JS bundles
     hypothesis: './h/static/scripts/annotator/main',
     app: './h/static/scripts/app.coffee',
-    config: './h/static/scripts/config/module',
     site: './h/static/scripts/site',
   },
 
@@ -62,10 +61,6 @@ module.exports = {
       loader: 'imports?Annotator=annotator'
     }]
   },
-
-  externals: [{
-    'angular': 'var angular',
-  }],
 
   resolve: {
     alias: {
