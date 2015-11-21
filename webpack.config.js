@@ -15,13 +15,20 @@ module.exports = {
 
   output: {
     // TODO - Move the build output to a separate
-    // 'build' directory once webassets is no longer
-    // in use
+    // build directory outside the source tree
+    // once webassets is no longer in use
     path: __dirname + '/h/static/scripts',
     filename: '[name].bundle.js',
   },
 
   module: {
+    // listing modules which are known not to contain
+    // any CommonJS requires here will speed up
+    // the build
+    noParse: [
+      /\/node_modules\/angular\/angular.js/
+    ],
+
     loaders: [{
       // ES2015 -> ES5 transpilation
       test: /\.js$/,
