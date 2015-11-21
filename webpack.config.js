@@ -15,7 +15,10 @@ module.exports = {
   },
 
   output: {
-    path: __dirname + '/build',
+    // TODO - Move the build output to a separate
+    // 'build' directory once webassets is no longer
+    // in use
+    path: __dirname + '/h/static/scripts',
     filename: '[name].bundle.js',
   },
 

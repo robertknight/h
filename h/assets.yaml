@@ -102,16 +102,8 @@ admin_js:
 
 # Configuration
 config:
-  output: scripts/config.min.js
-  filters: uglifyjs
   contents:
-    - output: scripts/config.js
-      filters: browserify
-      contents:
-        - h:static/scripts/config/module.js
-      depends:
-        - h:static/scripts/config/*.js
-
+    - h:static/scripts/config.bundle.js
 
 # the H client application
 app_js:
@@ -129,24 +121,7 @@ app_js:
     - angulartics_ga
     - katex
     - url
-    - output: scripts/app.min.js
-      filters: uglifyjs
-      contents:
-        - output: h:static/scripts/app.js
-          filters: browserify
-          contents: h:static/scripts/app.coffee
-          depends:
-            - h:static/scripts/*.coffee
-            - h:static/scripts/annotation-mapper.js
-            - h:static/scripts/auth.js
-            - h:static/scripts/features.js
-            - h:static/scripts/groups.js
-            - h:static/scripts/session.js
-            - h:static/scripts/settings.js
-            - h:static/scripts/store.js
-            - h:static/scripts/directive/*.coffee
-            - h:static/scripts/directive/*.js
-            - h:static/scripts/filter/*.js
+    - h:static/scripts/app.bundle.js
     - config
 
 app_css:
@@ -179,20 +154,7 @@ inject_js:
   contents:
   - jquery
   - url
-  - output: scripts/hypothesis.min.js
-    filters: uglifyjs
-    contents:
-      - output: scripts/hypothesis.js
-        filters: browserify
-        contents: h:static/scripts/annotator/main.js
-        depends:
-          - h:static/scripts/annotation-sync.coffee
-          - h:static/scripts/bridge.coffee
-          - h:static/scripts/discovery.coffee
-          - h:static/scripts/annotator/*.coffee
-          - h:static/scripts/annotator/*.js
-          - h:static/scripts/annotator/anchoring/*.coffee
-          - h:static/scripts/annotator/plugin/*.coffee
+  - h:static/scripts/hypothesis.bundle.js
 
 inject_css:
   output: styles/hypothesis.min.css
@@ -213,12 +175,8 @@ inject_css:
 
 # the H website
 site_js:
-  output: scripts/site-bundle.js
-  filters: browserify
   contents:
-    - h:static/scripts/site.js
-  depends:
-    - h:static/scripts/*.js
+   - h:static/scripts/config.bundle.js
 
 site_css:
   output: styles/site.min.css

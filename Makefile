@@ -47,10 +47,9 @@ backend-test: deps
 
 client-js:
 	@$(NPM_BIN)/webpack
-	cp build/app.bundle.js h/static/scripts/app.js
-	cp build/config.bundle.js h/static/scripts/config.js
-	cp build/site.bundle.js h/static/scripts/site-bundle.js
-	cp build/hypothesis.bundle.js h/static/scripts/hypothesis.js
+
+client-js-watch:
+	@$(NPM_BIN)/webpack --watch
 
 client-test: client-app-test client-extension-test
 
