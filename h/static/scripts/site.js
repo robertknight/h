@@ -8,7 +8,6 @@ var page = require('page');
 var CreateGroupFormController = require('./create-group-form');
 var DropdownMenuController = require('./dropdown-menu');
 var InstallerController = require('./installer-controller');
-var ShareGroupFormController = require('./share-group-form');
 
 // setup components
 new DropdownMenuController(document);
