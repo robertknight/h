@@ -14,7 +14,7 @@ module.exports = {
   },
   output: {
     path: __dirname + '/build',
-    filename: '[name]-bundle.js',
+    filename: '[name].bundle.js',
   },
   module: {
     loaders: [{
@@ -30,12 +30,21 @@ module.exports = {
         nodeModuleDir('dom-anchor-text-position'),
         nodeModuleDir('node-iterator-shim'),
       ],
+
+      exclude: [
+        path.resolve(__dirname, 'h/static/scripts/vendor'),
+      ],
     },{
       test: /\.coffee$/,
       loader: 'coffee-loader',
     }],
   },
   resolve: {
+    // FIXME
+    alias: {
+      'annotator': 'exports-loader?Annotator!' + path.resolve(__dirname,
+        'h/static/scripts/vendor/annotator.js'),
+    },
     extensions: [
       // default list of module extensions
       '', '.webpack.js', '.web.js', '.js',
