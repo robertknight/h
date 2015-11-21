@@ -3,44 +3,6 @@ angular:
   filters: uglifyjs
   output: scripts/vendor/angular.min.js
   contents: ../../node_modules/angular/angular.js
-angular_animate:
-  filters: uglifyjs
-  output: scripts/vendor/angular-animate.min.js
-  contents: ../../node_modules/angular-animate/angular-animate.js
-angular_bootstrap:
-  filters: uglifyjs
-  output: scripts/vendor/angular-bootstrap.min.js
-  contents: h:static/scripts/vendor/ui-bootstrap-custom-tpls-0.13.4.js
-angular_resource:
-  filters: uglifyjs
-  output: scripts/vendor/angular-resource.min.js
-  contents: ../../node_modules/angular-resource/angular-resource.js
-angular_route:
-  filters: uglifyjs
-  output: scripts/vendor/angular-route.min.js
-  contents: ../../node_modules/angular-route/angular-route.js
-angular_sanitize:
-  filters: uglifyjs
-  output: scripts/vendor/angular-sanitize.min.js
-  contents: ../../node_modules/angular-sanitize/angular-sanitize.js
-angular_tags_input:
-  output: scripts/vendor/angular-tags-input.min.js
-  contents: ../../node_modules/ng-tags-input/build/ng-tags-input.min.js
-angular_toastr:
-  filters: uglifyjs
-  output: scripts/vendor/angular-toastr.min.js
-  contents: ../../node_modules/angular-toastr/dist/angular-toastr.tpls.js
-
-
-# Analytics
-angulartics:
-  filters: uglifyjs
-  output: scripts/vendor/angulartics.min.js
-  contents: ../../node_modules/angulartics/src/angulartics.js
-angulartics_ga:
-  filters: uglifyjs
-  output: scripts/vendor/angulartics-ga.min.js
-  contents: ../../node_modules/angulartics/src/angulartics-ga.js
 
 
 # the full version of bootstrap, used
@@ -110,15 +72,6 @@ app_js:
   contents:
     - jquery
     - angular
-    - angular_animate
-    - angular_bootstrap
-    - angular_resource
-    - angular_route
-    - angular_sanitize
-    - angular_tags_input
-    - angular_toastr
-    - angulartics
-    - angulartics_ga
     - katex
     - url
     - h:static/scripts/app.bundle.js

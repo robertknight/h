@@ -6,7 +6,7 @@ if window.RAVEN_CONFIG
 
 require('autofill-event')
 angular = require('angular')
-require('angular-jwt')
+
 
 streamer = require('./streamer')
 
@@ -68,17 +68,24 @@ setupHttp = ['$http', ($http) ->
 setupHost = ['host', (host) -> ]
 
 module.exports = angular.module('h', [
+  # Angular addons which export the Angular module name
+  # via module.exports
+  require('angular-jwt')
+  require('angular-animate')
+  require('angular-resource')
+  require('angular-route')
+  require('angular-sanitize')
+  require('angular-toastr')
+
+  # Angular addons which do not export the Angular module
+  # name via module.exports
+  ['angulartics', require('angulartics')][0]
+  ['angulartics.google.analytics', require('angulartics/src/angulartics-ga')][0]
+  ['ngTagsInput', require('ng-tags-input')][0]
+  ['ui.bootstrap', require('./vendor/ui-bootstrap-custom-tpls-0.13.4')][0]
+
+  # Local addons
   require('./raven').angularModule().name
-  'angulartics'
-  'angulartics.google.analytics'
-  'angular-jwt'
-  'ngAnimate'
-  'ngResource'
-  'ngRoute'
-  'ngSanitize'
-  'ngTagsInput'
-  'toastr'
-  'ui.bootstrap'
 ])
 
 .controller('AppController', require('./app-controller'))
