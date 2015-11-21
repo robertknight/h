@@ -45,6 +45,13 @@ test: backend-test client-test
 backend-test: deps
 	@python setup.py test
 
+client-js:
+	@$(NPM_BIN)/webpack
+	cp build/app.bundle.js h/static/scripts/app.js
+	cp build/config.bundle.js h/static/scripts/config.js
+	cp build/site.bundle.js h/static/scripts/site-bundle.js
+	cp build/hypothesis.bundle.js h/static/scripts/hypothesis.js
+
 client-test: client-app-test client-extension-test
 
 client-app-test: deps

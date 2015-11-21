@@ -177,6 +177,7 @@ inject:
 
 inject_js:
   contents:
+  - jquery
   - url
   - output: scripts/hypothesis.min.js
     filters: uglifyjs

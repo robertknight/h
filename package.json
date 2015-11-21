@@ -51,7 +51,13 @@
     "unorm": "^1.3.3"
   },
   "devDependencies": {
+    "babel-core": "^6.2.1",
+    "babel-loader": "^6.2.0",
+    "babel-preset-es2015": "^6.1.18",
     "chai": "^3.2.0",
+    "coffee-loader": "^0.7.2",
+    "exports-loader": "^0.6.2",
+    "imports-loader": "^0.6.5",
     "jscs": "^1.13.1",
     "karma": "^0.13.10",
     "karma-browserify": "^3.0.3",
@@ -62,12 +68,14 @@
     "karma-phantomjs-launcher": "^0.1.4",
     "karma-sinon": "^1.0.4",
     "mocha": "^1.20.1",
+    "ng-annotate-webpack-plugin": "^0.1.2",
     "phantom-ownpropertynames": "^1.0.0",
     "phantomjs": "^1.9.7",
     "proxyquire": "^1.6.0",
     "proxyquire-universal": "^1.0.8",
     "proxyquireify": "^3.0.0",
     "sinon": "1.16.1",
+    "webpack": "^1.12.8",
     "whatwg-fetch": "^0.10.1"
   },
   "engines": {
@@ -84,33 +92,5 @@
   "bugs": {
     "url": "https://github.com/hypothesis/h/issues"
   },
-  "homepage": "https://github.com/hypothesis/h",
-  "browserify": {
-    "transform": [
-      "browserify-ngannotate",
-      "browserify-shim"
-    ]
-  },
-  "browser": {
-    "annotator": "./h/static/scripts/vendor/annotator.js",
-    "angular": "./node_modules/angular/angular.js",
-    "hammerjs": "./node_modules/hammerjs/hammer.js",
-    "jquery": "./node_modules/jquery/dist/jquery.js"
-  },
-  "browserify-shim": {
-    "annotator": {
-      "exports": "Annotator",
-      "depends": [
-        "jquery"
-      ]
-    },
-    "angular": {
-      "exports": "global:angular",
-      "depends": [
-        "jquery"
-      ]
-    },
-    "hammerjs": "Hammer",
-    "jquery": "$"
-  }
+  "homepage": "https://github.com/hypothesis/h"
 }
