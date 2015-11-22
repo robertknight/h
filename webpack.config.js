@@ -12,6 +12,9 @@ module.exports = {
     app: './h/static/scripts/app.coffee',
     site: './h/static/scripts/site',
 
+    // vendor JS bundles
+    jquery: 'jquery',
+    bootstrap: 'bootstrap',
     polyfills: './h/static/scripts/polyfills',
   },
 
@@ -58,6 +61,12 @@ module.exports = {
     },{
       test: /\.coffee$/,
       loader: 'coffee-loader',
+    },
+
+    // expose jQuery as window.{jQuery,$}
+    {
+      test: require.resolve('jquery'),
+      loader: 'expose?$!expose?jQuery'
     },
 
     // AnnotatorJS is not a CommonJS module,

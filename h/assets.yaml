@@ -13,17 +13,6 @@ bootstrap_full_css:
   contents: ../../node_modules/bootstrap/dist/css/bootstrap.css
 
 
-# jQuery
-jquery:
-  filters: uglifyjs
-  output: scripts/vendor/jquery.min.js
-  contents: ../../node_modules/jquery/dist/jquery.js
-
-
-polyfills:
-  contents: h:static/scripts/polyfills.bundle.js
-
-
 # Admin areas
 admin_css:
   contents:
@@ -37,15 +26,15 @@ admin_css:
             - h:static/styles/admin.scss
 admin_js:
   contents:
-    - jquery
-    - bootstrap_full_js
+    - h:static/scripts/jquery.bundle.js
+    - h:static/scripts/bootstrap.bundle.js
 
 
 # the H client application
 app_js:
   contents:
-    - jquery
-    - polyfills
+    - h:static/scripts/jquery.bundle.js
+    - h:static/scripts/polyfills.bundle.js
     - h:static/scripts/app.bundle.js
 
 
@@ -77,8 +66,8 @@ inject:
 
 inject_js:
   contents:
-  - jquery
-  - polyfills
+  - h:static/scripts/jquery.bundle.js
+  - h:static/scripts/polyfills.bundle.js
   - h:static/scripts/hypothesis.bundle.js
 
 inject_css:
@@ -100,8 +89,7 @@ inject_css:
 
 # the H website
 site_js:
-  contents:
-   - h:static/scripts/config.bundle.js
+  contents: h:static/scripts/site.bundle.js
 
 site_css:
   output: styles/site.min.css
