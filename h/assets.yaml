@@ -20,13 +20,6 @@ jquery:
   contents: ../../node_modules/jquery/dist/jquery.js
 
 
-# TeX rendering
-katex:
-  filters: uglifyjs
-  output: scripts/vendor/katex.min.js
-  contents: h:static/scripts/vendor/katex.js
-
-
 # Polyfills
 wgxpath:
   filters: uglifyjs
@@ -59,7 +52,6 @@ admin_js:
 app_js:
   contents:
     - jquery
-    - katex
     - url
     - h:static/scripts/app.bundle.js
 

@@ -1,3 +1,5 @@
+# TODO - Replace with current version of KaTeX from npm
+katex = require('../vendor/katex')
 mediaEmbedder = require('../media-embedder')
 
 loadMathJax = ->
