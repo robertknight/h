@@ -11,6 +11,8 @@ module.exports = {
     hypothesis: './h/static/scripts/annotator/main',
     app: './h/static/scripts/app.coffee',
     site: './h/static/scripts/site',
+
+    polyfills: './h/static/scripts/polyfills',
   },
 
   output: {

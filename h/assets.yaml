@@ -20,15 +20,8 @@ jquery:
   contents: ../../node_modules/jquery/dist/jquery.js
 
 
-# Polyfills
-wgxpath:
-  filters: uglifyjs
-  output: scripts/vendor/wgxpath.install.min.js
-  contents: h:static/scripts/vendor/wgxpath.install.js
-url:
-  filters: uglifyjs
-  output: scripts/vendor/url.min.js
-  contents: ../../node_modules/js-polyfills/url.js
+polyfills:
+  contents: h:static/scripts/polyfills.bundle.js
 
 
 # Admin areas
@@ -52,7 +45,7 @@ admin_js:
 app_js:
   contents:
     - jquery
-    - url
+    - polyfills
     - h:static/scripts/app.bundle.js
 
 
@@ -85,7 +78,7 @@ inject:
 inject_js:
   contents:
   - jquery
-  - url
+  - polyfills
   - h:static/scripts/hypothesis.bundle.js
 
 inject_css:
