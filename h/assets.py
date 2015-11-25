@@ -11,26 +11,6 @@ def _locate_npm_bin(name):
     return './node_modules/.bin/{}'.format(name)
 
 
-class Browserify(ExternalTool):
-    """
-    An input filter for webassets that bundles CoffeeScript or JavaScript
-    using Browserify.
-    """
-    name = 'browserify'
-    max_debug_level = None
-    extra_args = None
-
-    def input(self, in_, out, **kw):
-        args = [_locate_npm_bin('browserify'), '--extension=.coffee',
-                '--transform', 'coffeeify']
-        if self.get_config('debug'):
-            args.append('-d')
-        args.append(kw['source_path'])
-        self.subprocess(args, out)
-
-register_filter(Browserify)
-
-
 # The release versions of webassets upstream don't support extra arguments yet.
 class CleanCSS(ExternalTool):
     """
