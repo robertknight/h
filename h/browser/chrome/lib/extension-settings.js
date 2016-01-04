@@ -2,6 +2,7 @@ var util = require('./util');
 
 var values = {
   keepActiveOnPageChange: false,
+  showAnnotationCounts: false,
 };
 
 var keys = Object.keys(values).reduce(function (keys, key) {
@@ -9,13 +10,22 @@ var keys = Object.keys(values).reduce(function (keys, key) {
   return keys;
 }, {});
 
+var requestFn = util.promisify(chrome.permissions.request);
+var revokeFn = util.promisify(chrome.permissions.remove);
+
+function requestTabsPermission() {
+  return requestFn({permissions: ['tabs']});
+}
+
+function revokeTabsPermission() {
+  return revokeFn({permissions: ['tabs']});
+}
+
 function requestAllUrlsPermission() {
-  var requestFn = util.promisify(chrome.permissions.request);
   return requestFn({origins: ['<all_urls>']});
 }
 
 function revokeAllUrlsPermission() {
-  var revokeFn = util.promisify(chrome.permissions.remove);
   return revokeFn({origins: ['<all_urls>']});
 }
 
@@ -42,6 +52,21 @@ function installChangeHandler() {
   chrome.runtime.onMessage.addListener(function (request, _, sendResponse) {
     if (request.type === 'SETTING_CHANGE_REQUEST') {
       switch (request.setting) {
+        case keys.showAnnotationCounts:
+          if (request.value) {
+            requestTabsPermission().then(function (granted) {
+              notifySettingChanged(keys.showAnnotationCounts, granted);
+            }).catch(function (err) {
+              console.error('Error requesting tabs permission', err);
+            });
+          } else {
+            revokeTabsPermission().then(function (revoked) {
+              notifySettingChanged(keys.showAnnotationCounts, false);
+            }).catch(function (err) {
+              console.error('Error revoking tabs permission', err);
+            });
+          }
+          break;
         case keys.keepActiveOnPageChange:
           if (request.value) {
             requestAllUrlsPermission().then(function (granted) {
@@ -94,6 +119,8 @@ function init() {
   getAllPermissionsFn().then(function (perms) {
     notifySettingChanged(keys.keepActiveOnPageChange,
       perms.origins.indexOf('<all_urls>') !== -1);
+    notifySettingChanged(keys.showAnnotationCounts,
+      perms.permissions.indexOf('tabs') !== -1);
   }).catch(function (err) {
     console.error('Unable to check permissions');
   });

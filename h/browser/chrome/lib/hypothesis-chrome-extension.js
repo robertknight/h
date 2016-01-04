@@ -229,7 +229,6 @@ function HypothesisChromeExtension(dependencies) {
           }
         })
         .catch(function (err) {
-          console.log('tab error', err);
           tabErrors.setTabError(tab.id, err);
           state.errorTab(tab.id);
         });
