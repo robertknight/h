@@ -1,6 +1,9 @@
 'use strict';
 
 var HypothesisChromeExtension = require('./hypothesis-chrome-extension');
+var extensionSettings = require('./extension-settings');
+
+extensionSettings.init();
 
 var browserExtension = new HypothesisChromeExtension({
   chromeTabs: chrome.tabs,
