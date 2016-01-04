@@ -27,6 +27,11 @@ function onInstalled(installDetails) {
     browserExtension.firstRun();
   }
 
+/*
+  temporarily disabled whilst investigating whether it is possible
+  to create a Chrome extension which does not ask for scary permissions.
+  See https://trello.com/c/nE95ZLr4
+  
   // We need this so that 3rd party cookie blocking does not kill us.
   // See https://github.com/hypothesis/h/issues/634 for more info.
   // This is intended to be a temporary fix only.
@@ -37,6 +42,7 @@ function onInstalled(installDetails) {
   chrome.contentSettings.cookies.set(details);
   chrome.contentSettings.images.set(details);
   chrome.contentSettings.javascript.set(details);
+  */
 
   browserExtension.install();
 }
