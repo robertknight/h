@@ -9,25 +9,19 @@ function changeSetting(setting, value) {
 }
 
 function init() {
-  var keepActiveOnPageChangeInput = document.querySelector('#keepActiveOnPageChange');
-
   extensionSettings.getAll().then(function (settings) {
-    keepActiveOnPageChangeInput.checked = settings.keepActiveOnPageChange;
+    Object.keys(settings).forEach(function (key) {
+      var input = document.querySelector('#' + key);
+      if (input) {
+        input.checked = settings[key];
+
+        input.addEventListener('change', function () {
+          changeSetting(key, input.checked);
+        });
+      }
+    });
   }).catch(function (err) {
     console.error('Failed to read extension settings', err);
-  });
-
-  chrome.runtime.onMessage.addListener(function (message) {
-    if (message.type === 'SETTING_CHANGED') {
-      switch (message.setting) {
-        case 'keepActiveOnPageChange':
-          keepActiveOnPageChangeInput.checked = message.value;
-      }
-    }
-  });
-
-  keepActiveOnPageChangeInput.addEventListener('change', function () {
-    changeSetting('keepActiveOnPageChange', keepActiveOnPageChangeInput.checked);
   });
 }
 
