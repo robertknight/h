@@ -23,6 +23,8 @@ var DEFAULT_STATE = {
   extensionSidebarInstalled: false,
   /** Whether the tab is loaded and ready for the sidebar to be installed. */
   ready: false,
+  /** True if we have the activeTab permission for the current tab. */
+  hasActiveTabPermission: false,
 };
 
 /** encodeUriQuery encodes a string for use in a query parameter */
@@ -70,7 +72,10 @@ function TabState(initialState, onchange) {
   };
 
   this.activateTab = function (tabId) {
-    this.setState(tabId, {state: states.ACTIVE});
+    this.setState(tabId, {
+      hasActiveTabPermission: true,
+      state: states.ACTIVE,
+    });
   };
 
   this.deactivateTab = function (tabId) {

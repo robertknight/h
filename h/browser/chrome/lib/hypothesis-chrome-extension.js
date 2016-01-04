@@ -8,8 +8,11 @@ var SidebarInjector = require('./sidebar-injector');
 var TabErrorCache = require('./tab-error-cache');
 var TabStore = require('./tab-store');
 
+var extensionSettings = require('./extension-settings');
+
 var TAB_STATUS_LOADING = 'loading';
 var TAB_STATUS_COMPLETE = 'complete';
+
 
 /* The main extension application. This wires together all the smaller
  * modules. The app listens to all new created/updated/removed tab events
@@ -139,6 +142,7 @@ function HypothesisChromeExtension(dependencies) {
       ready: false,
       annotationCount: 0,
       extensionSidebarInstalled: false,
+      hasActiveTabPermission: false,
     });
 
     settings.then(function(settings) {
@@ -187,6 +191,20 @@ function HypothesisChromeExtension(dependencies) {
     state.clearTab(tabId);
   }
 
+  // checks that we have permission to install the Hypothesis sidebar into
+  // the current tab and requests it otherwise
+  function getInstallPermission(tab) {
+    var tabState = state.getState(tab.id);
+    if (extensionSettings.values.keepActiveOnPageChange ||
+        tabState.hasActiveTabPermission) {
+      return Promise.resolve(true);
+    } else {
+      return extensionSettings.showSettingsDialog().then(function () {
+        return extensionSettings.values.keepActiveOnPageChange;
+      });
+    }
+  }
+
   // installs or uninstalls the sidebar from a tab when the H
   // state for a tab changes
   function updateTabDocument(tab) {
@@ -202,8 +220,16 @@ function HypothesisChromeExtension(dependencies) {
       state.setState(tab.id, {
         extensionSidebarInstalled: true,
       });
-      return sidebar.injectIntoTab(tab)
+      return getInstallPermission(tab)
+        .then(function (hasPermission) {
+          if (hasPermission) {
+            return sidebar.injectIntoTab(tab)
+          } else {
+            state.deactivateTab(tab.id);
+          }
+        })
         .catch(function (err) {
+          console.log('tab error', err);
           tabErrors.setTabError(tab.id, err);
           state.errorTab(tab.id);
         });
