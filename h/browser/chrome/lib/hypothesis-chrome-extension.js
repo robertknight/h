@@ -90,6 +90,11 @@ function HypothesisChromeExtension(dependencies) {
     });
   };
 
+  /** Returns the internal H state of all tabs */
+  this.tabStates = function () {
+    return state.getAllStates();
+  };
+
   function restoreSavedTabState() {
     store.reload();
     state.load(store.all());

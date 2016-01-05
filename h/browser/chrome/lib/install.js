@@ -22,6 +22,12 @@ chrome.runtime.requestUpdateCheck(function (status) {
   chrome.runtime.onUpdateAvailable.addListener(onUpdateAvailable);
 });
 
+/**
+ * Expose the HypothesisChromeExtension instance
+ * for debugging purposes.
+ */
+window.HypothesisChromeExtension = browserExtension;
+
 function onInstalled(installDetails) {
   if (installDetails.reason === 'install') {
     browserExtension.firstRun();

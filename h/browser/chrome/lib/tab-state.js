@@ -114,6 +114,14 @@ function TabState(initialState, onchange) {
   };
 
   /**
+   * Returns a map of tabId -> H state
+   * for all known tabs.
+   */
+  this.getAllStates = function () {
+    return currentState;
+  };
+
+  /**
    * Updates the H state for a tab.
    *
    * @param tabId - The ID of the tab being updated
