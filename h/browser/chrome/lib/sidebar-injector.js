@@ -2,7 +2,9 @@
 
 var blocklist = require('../../../static/scripts/blocklist');
 var errors = require('./errors');
+var messageTypes = require('./message-types');
 var settings = require('./settings');
+var util = require('./util');
 
 /* The SidebarInjector is used to deploy and remove the Hypothesis sidebar
  * from tabs. It also deals with loading PDF documents into the PDF.js viewer
@@ -21,6 +23,7 @@ function SidebarInjector(chromeTabs, dependencies) {
 
   var isAllowedFileSchemeAccess = dependencies.isAllowedFileSchemeAccess;
   var extensionURL = dependencies.extensionURL;
+  var executeScriptFn = util.promisify(chromeTabs.executeScript);
 
   if (typeof extensionURL !== 'function') {
     throw new TypeError('extensionURL must be a function');
@@ -134,10 +137,23 @@ function SidebarInjector(chromeTabs, dependencies) {
         return reject(new errors.RestrictedProtocolError('Cannot load Hypothesis into ' + protocol + ' pages'));
       }
 
-      return injectScript(tab.id, '/public/config.js').then(function () {
+      return injectUnloadListener(tab.id).then(function (result) {
+        return injectScript(tab.id, '/public/config.js')
+      }).then(function () {
         injectScript(tab.id, '/public/embed.js').then(resolve);
       });
     });
+  }
+
+  function injectUnloadListener(tabId) {
+    var preinjectCode = [
+      'window.addEventListener("unload", function () {',
+      'chrome.runtime.sendMessage(' + JSON.stringify({
+        type: messageTypes.TAB_DOCUMENT_UNLOADED,
+      }) + ');',
+      '})',
+    ].join('\n');
+    return executeScriptFn(tabId, {code: preinjectCode});
   }
 
   function removeFromPDF(tab) {
