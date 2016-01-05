@@ -1,5 +1,14 @@
+/**
+ * Provides functions to read extension-specific settings
+ * and display the settings dialog.
+ */
+
 var util = require('./util');
 
+/**
+ * A dictionary mapping extension settings to their current values.
+ * The settings must be initialized by calling init()
+ */
 var values = {
   keepActiveOnPageChange: false,
   showAnnotationCounts: false,
@@ -38,6 +47,10 @@ function notifySettingChanged(setting, value) {
   });
 }
 
+/**
+ * Returns a Promise for an object mapping settings keys
+ * to their current values.
+ */
 function getAll() {
   return new Promise(function (resolve, reject) {
     chrome.runtime.sendMessage({
@@ -89,6 +102,11 @@ function installChangeHandler() {
   });
 }
 
+/** Show the extension settings dialog in a popup window.
+ *
+ * Returns a promise which resolves once the popup window has
+ * been dismissed.
+ */
 function showSettingsDialog() {
   var settingsWindowId;
 
