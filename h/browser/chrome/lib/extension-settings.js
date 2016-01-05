@@ -23,11 +23,11 @@ var requestFn = util.promisify(chrome.permissions.request);
 var revokeFn = util.promisify(chrome.permissions.remove);
 
 function requestTabsPermission() {
-  return requestFn({permissions: ['tabs']});
+  return requestFn({permissions: ['webNavigation']});
 }
 
 function revokeTabsPermission() {
-  return revokeFn({permissions: ['tabs']});
+  return revokeFn({permissions: ['webNavigation']});
 }
 
 function requestAllUrlsPermission() {

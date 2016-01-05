@@ -8,6 +8,14 @@ extensionSettings.init();
 var browserExtension = new HypothesisChromeExtension({
   chromeTabs: chrome.tabs,
   chromeBrowserAction: chrome.browserAction,
+  chromeRuntime: chrome.runtime,
+
+  // chromeWebNavigation is a function which may return null
+  // depending on whether the optional 'webNavigation' permission has
+  // been granted or not
+  chromeWebNavigation: function () {
+    return chrome.webNavigation;
+  },
   extensionURL: function (path) {
     return chrome.extension.getURL(path);
   },

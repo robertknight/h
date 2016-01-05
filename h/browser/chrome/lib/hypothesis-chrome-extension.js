@@ -9,9 +9,61 @@ var TabErrorCache = require('./tab-error-cache');
 var TabStore = require('./tab-store');
 
 var extensionSettings = require('./extension-settings');
+var messageTypes = require('./message-types');
 
 var TAB_STATUS_LOADING = 'loading';
 var TAB_STATUS_COMPLETE = 'complete';
+
+
+function listenForNavigation(webNavigation, apiUrl, state) {
+
+  // listen for tab navigation events, which are emitted in the following
+  // order:
+  //
+  // onBeforeNavigate - A navigation was initiated
+  // {onErrorOccurred} - Emitted if the navigation was interrupted.
+  // onCommitted - The first chunk of data for the new URL was received
+  // onDOMContentLoaded - The content of the main URL was fully received
+  // onCompleted
+
+  // invoked when navigation to a new URL is successful.
+  function onCommitted(details) {
+    if (details.frameId !== 0) {
+      // navigation occurred in a sub-frame
+      return;
+    }
+    state.updateAnnotationCount(details.tabId, details.url, apiUrl);
+  }
+
+  // invoked when navigation to a new URL in a tab is interrupted
+  // before it completes. The documentation isn't completely clear on this,
+  // but it appears that details.url returns the _current_ URL of the tab,
+  //
+  function onErrorOccurred(details) {
+    if (details.frameId !== 0) {
+      // navigation occurred in a sub-frame
+      return;
+    }
+    state.setState(details.tabId, {
+      ready: true,
+    });
+    state.updateAnnotationCount(details.tabId, details.url, apiUrl);
+  }
+
+  function onDOMContentLoaded(details) {
+    if (details.frameId !== 0) {
+      // navigation occurred in a sub-frame
+      return;
+    }
+    state.setState(details.tabId, {
+      ready: true,
+    });
+  }
+
+  webNavigation.onCommitted.addListener(onCommitted);
+  webNavigation.onErrorOccurred.addListener(onErrorOccurred);
+  webNavigation.onDOMContentLoaded.addListener(onDOMContentLoaded);
+}
 
 
 /* The main extension application. This wires together all the smaller
@@ -44,6 +96,9 @@ var TAB_STATUS_COMPLETE = 'complete';
 function HypothesisChromeExtension(dependencies) {
   var chromeTabs = dependencies.chromeTabs;
   var chromeBrowserAction = dependencies.chromeBrowserAction;
+  var chromeRuntime = dependencies.chromeRuntime;
+  var chromeWebNavigation = dependencies.chromeWebNavigation;
+
   var help  = new HelpPage(chromeTabs, dependencies.extensionURL);
   var store = new TabStore(localStorage);
   var state = new TabState(store.all(), onTabStateChange);
@@ -55,6 +110,7 @@ function HypothesisChromeExtension(dependencies) {
   var tabErrors = new TabErrorCache();
 
   restoreSavedTabState();
+  initTabNavigationHandler();
 
   /* Sets up the extension and binds event listeners. Requires a window
    * object to be passed so that it can listen for localStorage events.
@@ -62,18 +118,8 @@ function HypothesisChromeExtension(dependencies) {
   this.listen = function (window) {
     chromeBrowserAction.onClicked.addListener(onBrowserActionClicked);
     chromeTabs.onCreated.addListener(onTabCreated);
-
-    // when a user navigates within an existing tab,
-    // onUpdated is fired in most cases
-    chromeTabs.onUpdated.addListener(onTabUpdated);
-
-    // ... but when a user navigates to a page that is loaded
-    // via prerendering or instant results, onTabReplaced is
-    // fired instead. See https://developer.chrome.com/extensions/tabs#event-onReplaced
-    // and https://code.google.com/p/chromium/issues/detail?id=109557
-    chromeTabs.onReplaced.addListener(onTabReplaced);
-
     chromeTabs.onRemoved.addListener(onTabRemoved);
+    chromeRuntime.onMessage.addListener(onMessage);
   };
 
   /* A method that can be used to setup the extension on existing tabs
@@ -95,6 +141,15 @@ function HypothesisChromeExtension(dependencies) {
     return state.getAllStates();
   };
 
+  function initTabNavigationHandler() {
+    settings.then(function (settings) {
+      var webNavigation = chromeWebNavigation();
+      if (webNavigation) {
+        listenForNavigation(webNavigation, settings.apiUrl, state);
+      }
+    });
+  }
+
   function restoreSavedTabState() {
     store.reload();
     state.load(store.all());
@@ -103,6 +158,20 @@ function HypothesisChromeExtension(dependencies) {
         onTabStateChange(tab.id, state.getState(tab.id));
       });
     });
+  }
+
+  function onMessage(message, sender) {
+    switch (message.type) {
+    case messageTypes.TAB_DOCUMENT_UNLOADED:
+      resetTabState(sender.tab.id, null);
+      break;
+    case 'SETTING_CHANGED':
+      if (message.setting === 'showAnnotationCounts' &&
+          message.value) {
+        initTabNavigationHandler();
+      }
+      break;
+    }
   }
 
   function onTabStateChange(tabId, current) {
@@ -136,10 +205,9 @@ function HypothesisChromeExtension(dependencies) {
     }
   }
 
-  // reset the internal Hypothesis state for a tab after a
-  // tab navigation has occurred. 'url' is the new URL for the tab
-  // (if known)
-  function resetTabState(tabId, url) {
+  // reset the extension's state for a tab after
+  // the current document is unloaded
+  function resetTabState(tabId) {
     var activeState = state.getState(tabId).state;
     if (activeState === TabState.states.ERRORED) {
       activeState = TabState.states.ACTIVE;
@@ -156,27 +224,6 @@ function HypothesisChromeExtension(dependencies) {
       extensionSidebarInstalled: false,
       hasActiveTabPermission: false,
     });
-
-    settings.then(function(settings) {
-      state.updateAnnotationCount(tabId, url, settings.apiUrl);
-    });
-  }
-
-  // This function will be called multiple times as the tab reloads.
-  // https://developer.chrome.com/extensions/tabs#event-onUpdated
-  //
-  // 'changeInfo' contains details of what changed about the tab's status.
-  // Two important events are when the tab's `status` changes to `loading`
-  // when the user begins a new navigation and when the tab's status changes
-  // to `complete` after the user completes a navigation
-  function onTabUpdated(tabId, changeInfo, tab) {
-    if (changeInfo.status === TAB_STATUS_LOADING) {
-      resetTabState(tabId, tab.url);
-    } else if (changeInfo.status === TAB_STATUS_COMPLETE) {
-      state.setState(tabId, {
-        ready: true,
-      });
-    }
   }
 
   function onTabReplaced(addedTabId, removedTabId) {
