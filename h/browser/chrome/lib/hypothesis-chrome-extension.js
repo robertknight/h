@@ -236,6 +236,7 @@ function HypothesisChromeExtension(dependencies) {
           }
         })
         .catch(function (err) {
+          console.error('Failed to inject Hypothesis sidebar:', err);
           tabErrors.setTabError(tab.id, err);
           state.errorTab(tab.id);
         });
