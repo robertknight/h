@@ -131,10 +131,17 @@ function HypothesisChromeExtension(dependencies) {
     }
   }
 
+  // reset the internal Hypothesis state for a tab after a
+  // tab navigation has occurred. 'url' is the new URL for the tab
+  // (if known)
   function resetTabState(tabId, url) {
     var activeState = state.getState(tabId).state;
     if (activeState === TabState.states.ERRORED) {
       activeState = TabState.states.ACTIVE;
+    }
+
+    if (!extensionSettings.keepActiveOnPageChange) {
+      activeState = TabState.states.INACTIVE;
     }
 
     state.setState(tabId, {
