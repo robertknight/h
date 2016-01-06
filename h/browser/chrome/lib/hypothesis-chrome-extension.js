@@ -243,7 +243,7 @@ function HypothesisChromeExtension(dependencies) {
       activeState = TabState.states.ACTIVE;
     }
 
-    if (!extensionSettings.keepActiveOnPageChange) {
+    if (!extensionSettings.values.keepActiveOnPageChange) {
       activeState = TabState.states.INACTIVE;
     }
 
