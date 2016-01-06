@@ -15,7 +15,30 @@ var TAB_STATUS_LOADING = 'loading';
 var TAB_STATUS_COMPLETE = 'complete';
 
 
+// Set up listeners for tab navigation events and update
+// annotation counts in response.
+// 'webNavigation' - The chrome.webNavigation implementation
+// 'state' - The TabState instance storing extension tab state
 function listenForNavigation(webNavigation, apiUrl, state) {
+
+  // check if a tab with a given ID is actually a visible in
+  // a Chrome Window and invoke a callback if so.
+  //
+  // The chrome.webNavigation API reports events for hidden
+  // pre-rendered tabs which are not accessible via other APIs
+  // (eg. chrome.tabs). Such tabs will eventually either be discarded
+  // or made visible with a chrome.tabs.onReplaced event, in which
+  // annotation counts and other tab state will be updated at that point
+  function ifTabVisible(tabId, cb) {
+    chrome.tabs.get(tabId, function (tab) {
+      if (chrome.runtime.lastError) {
+        // tab is hidden
+        console.log('ignoring navigation in hidden tab');
+        return;
+      }
+      cb();
+    });
+  }
 
   // listen for tab navigation events, which are emitted in the following
   // order:
@@ -32,7 +55,9 @@ function listenForNavigation(webNavigation, apiUrl, state) {
       // navigation occurred in a sub-frame
       return;
     }
-    state.updateAnnotationCount(details.tabId, details.url, apiUrl);
+    ifTabVisible(details.tabId, function () {
+      state.updateAnnotationCount(details.tabId, details.url, apiUrl);
+    });
   }
 
   // invoked when navigation to a new URL in a tab is interrupted
@@ -44,10 +69,12 @@ function listenForNavigation(webNavigation, apiUrl, state) {
       // navigation occurred in a sub-frame
       return;
     }
-    state.setState(details.tabId, {
-      ready: true,
+    ifTabVisible(details.tabId, function () {
+      state.setState(details.tabId, {
+        ready: true,
+      });
+      state.updateAnnotationCount(details.tabId, details.url, apiUrl);
     });
-    state.updateAnnotationCount(details.tabId, details.url, apiUrl);
   }
 
   function onDOMContentLoaded(details) {
@@ -55,8 +82,10 @@ function listenForNavigation(webNavigation, apiUrl, state) {
       // navigation occurred in a sub-frame
       return;
     }
-    state.setState(details.tabId, {
-      ready: true,
+    ifTabVisible(details.tabId, function () {
+      state.setState(details.tabId, {
+        ready: true,
+      });
     });
   }
 
@@ -119,6 +148,7 @@ function HypothesisChromeExtension(dependencies) {
     chromeBrowserAction.onClicked.addListener(onBrowserActionClicked);
     chromeTabs.onCreated.addListener(onTabCreated);
     chromeTabs.onRemoved.addListener(onTabRemoved);
+    chromeTabs.onReplaced.addListener(onTabReplaced);
     chromeRuntime.onMessage.addListener(onMessage);
   };
 
