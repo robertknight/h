@@ -6,6 +6,27 @@ var messageTypes = require('./message-types');
 var settings = require('./settings');
 var util = require('./util');
 
+var CONTENT_TYPE_PDF = 'PDF';
+
+// a function which is executed as a content script
+// to determine the type of content being displayed in a tab
+function detectContentType() {
+  // check if this is the Chrome PDF viewer
+  if (document.querySelector('embed[type="application/pdf"]')) {
+    return {
+      type: 'PDF',
+    };
+  } else {
+    return {
+      type: 'HTML',
+    };
+  }
+}
+
+function toIIFEString(fn) {
+  return '(' + fn.toString() + ')()';
+}
+
 /* The SidebarInjector is used to deploy and remove the Hypothesis sidebar
  * from tabs. It also deals with loading PDF documents into the PDF.js viewer
  * when applicable.
@@ -75,8 +96,12 @@ function SidebarInjector(chromeTabs, dependencies) {
     return PDF_VIEWER_URL + '?file=' + encodeURIComponent(url);
   }
 
-  function isPDFURL(url) {
-    return url.toLowerCase().indexOf('.pdf') > 0;
+  function detectTabContentType(tab) {
+    return executeScriptFn(tab.id, {
+        code: toIIFEString(detectContentType)
+      }).then(function (frameResults) {
+        return frameResults[0].type;
+      });
   }
 
   function isPDFViewerURL(url) {
@@ -95,15 +120,23 @@ function SidebarInjector(chromeTabs, dependencies) {
   }
 
   function injectIntoLocalDocument(tab) {
-    if (isPDFURL(tab.url)) {
-      return injectIntoLocalPDF(tab);
-    } else {
-      return Promise.reject(new errors.LocalFileError('Local non-PDF files are not supported'));
-    }
+    return detectTabContentType(tab).then(function (type) {
+      if (type === CONTENT_TYPE_PDF) {
+        return injectIntoLocalPDF(tab);
+      } else {
+        return Promise.reject(new errors.LocalFileError('Local non-PDF files are not supported'));
+      }
+    });
   }
 
   function injectIntoRemoteDocument(tab) {
-    return isPDFURL(tab.url) ? injectIntoPDF(tab) : injectIntoHTML(tab);
+    return detectTabContentType(tab).then(function (type) {
+      if (type === CONTENT_TYPE_PDF) {
+        return injectIntoPDF(tab);
+      } else {
+        return injectIntoHTML(tab);
+      }
+    });
   }
 
   function injectIntoPDF(tab) {
