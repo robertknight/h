@@ -3,6 +3,8 @@
  * and display the settings dialog.
  */
 
+var assign = require('core-js/modules/$.object-assign');
+
 var util = require('./util');
 
 /**
@@ -22,20 +24,46 @@ var keys = Object.keys(values).reduce(function (keys, key) {
 var requestFn = util.promisify(chrome.permissions.request);
 var revokeFn = util.promisify(chrome.permissions.remove);
 
-function requestTabsPermission() {
-  return requestFn({permissions: ['webNavigation']});
+function permissionsForSettings(settings) {
+  var permissions = [];
+  var origins = [];
+  if (settings.keepActiveOnPageChange || settings.showAnnotationCounts) {
+    permissions.push('tabs', 'webNavigation');
+  }
+  if (settings.keepActiveOnPageChange) {
+    origins.push('<all_urls>');
+  }
+  return {
+    permissions: permissions,
+    origins: origins,
+  }
 }
 
-function revokeTabsPermission() {
-  return revokeFn({permissions: ['webNavigation']});
+function requestPermissions(settings) {
+  console.log('requesting permissions', permissionsForSettings(settings));
+  return requestFn(permissionsForSettings(settings));
 }
 
-function requestAllUrlsPermission() {
-  return requestFn({origins: ['<all_urls>']});
-}
+function removePermissions(oldSettings, newSettings) {
+  var oldPermissions = permissionsForSettings(oldSettings);
+  var newPermissions = permissionsForSettings(newSettings);
 
-function revokeAllUrlsPermission() {
-  return revokeFn({origins: ['<all_urls>']});
+  function removedItems(a, b) {
+    return a.filter(function (item) {
+      return b.indexOf(item) == -1;
+    });
+  }
+
+  var removed = {
+    permissions: removedItems(oldPermissions.permissions,
+      newPermissions.permissions),
+    origins: removedItems(oldPermissions.origins,
+      newPermissions.origins),
+  };
+
+  console.log('removing permissions', removed);
+
+  return revokeFn(removed);
 }
 
 function notifySettingChanged(setting, value) {
@@ -64,38 +92,21 @@ function getAll() {
 function installChangeHandler() {
   chrome.runtime.onMessage.addListener(function (request, _, sendResponse) {
     if (request.type === 'SETTING_CHANGE_REQUEST') {
-      switch (request.setting) {
-        case keys.showAnnotationCounts:
-          if (request.value) {
-            requestTabsPermission().then(function (granted) {
-              notifySettingChanged(keys.showAnnotationCounts, granted);
-            }).catch(function (err) {
-              console.error('Error requesting tabs permission', err);
-            });
-          } else {
-            revokeTabsPermission().then(function (revoked) {
-              notifySettingChanged(keys.showAnnotationCounts, false);
-            }).catch(function (err) {
-              console.error('Error revoking tabs permission', err);
-            });
-          }
-          break;
-        case keys.keepActiveOnPageChange:
-          if (request.value) {
-            requestAllUrlsPermission().then(function (granted) {
-              notifySettingChanged(keys.keepActiveOnPageChange, granted);
-            }).catch(function (err) {
-              console.error('Error changing permissions', err);
-            });
-          } else {
-            revokeAllUrlsPermission().then(function (revoked) {
-              notifySettingChanged(keys.keepActiveOnPageChange, false);
-            }).catch(function (err) {
-              console.error('Error changing permissions', err);
-            });
-          }
-          break;
-      }
+      var newSettings = assign({}, values);
+      newSettings[request.setting] = request.value;
+
+      // request any new permissions needed for this setting
+      requestPermissions(newSettings).then(function (granted) {
+        window.localStorage.setItem("settings", JSON.stringify(values));
+        notifySettingChanged(request.setting, request.value);
+      }).catch(function (err) {
+        console.error('Error requesting permissions for new settings', err);
+      });
+
+      // remove any permissions that are no longer required
+      removePermissions(values, newSettings).catch(function (err) {
+        console.error('Error revoking permissions', err);
+      });
     } else if (request.type === 'GET_SETTINGS') {
       sendResponse({values: values});
     }
@@ -133,15 +144,15 @@ function showSettingsDialog() {
 function init() {
   installChangeHandler();
 
-  var getAllPermissionsFn = util.promisify(chrome.permissions.getAll);
-  getAllPermissionsFn().then(function (perms) {
-    notifySettingChanged(keys.keepActiveOnPageChange,
-      perms.origins.indexOf('<all_urls>') !== -1);
-    notifySettingChanged(keys.showAnnotationCounts,
-      perms.permissions.indexOf('tabs') !== -1);
-  }).catch(function (err) {
-    console.error('Unable to check permissions');
-  });
+  try {
+    // TODO - Verify here that the saved settings are consistent with
+    // the extension's current permissions and reset any settings
+    // for which we do not have sufficient permissions
+    var savedSettings = JSON.parse(window.localStorage.getItem("settings"));
+    assign(values, savedSettings);
+  } catch (err) {
+    console.error('Error loading settings', err);
+  }
 }
 
 module.exports = {
