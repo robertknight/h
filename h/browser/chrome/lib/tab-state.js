@@ -75,6 +75,7 @@ function TabState(initialState, onchange) {
     this.setState(tabId, {
       hasActiveTabPermission: true,
       state: states.ACTIVE,
+      ready: true,
     });
   };
 
