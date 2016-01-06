@@ -6,6 +6,7 @@ var messageTypes = require('./message-types');
 var settings = require('./settings');
 var util = require('./util');
 
+var CONTENT_TYPE_HTML = 'HTML';
 var CONTENT_TYPE_PDF = 'PDF';
 
 // a function which is executed as a content script
@@ -97,6 +98,10 @@ function SidebarInjector(chromeTabs, dependencies) {
   }
 
   function detectTabContentType(tab) {
+    if (!isSupportedURL(tab.url)) {
+      return Promise.resolve(CONTENT_TYPE_HTML);
+    }
+
     return executeScriptFn(tab.id, {
         code: toIIFEString(detectContentType)
       }).then(function (frameResults) {
@@ -113,9 +118,12 @@ function SidebarInjector(chromeTabs, dependencies) {
   }
 
   function isSupportedURL(url) {
-    var SUPPORTED_PROTOCOLS = ['http:', 'https:', 'ftp:'];
+    // Injection of content scripts is limited to a small number of protocols,
+    // see https://developer.chrome.com/extensions/match_patterns
+    var parsedURL = new URL(url);
+    var SUPPORTED_PROTOCOLS = ['http:', 'https:', 'ftp:', 'file:'];
     return SUPPORTED_PROTOCOLS.some(function (protocol) {
-      return url.indexOf(protocol) === 0;
+      return parsedURL.protocol === protocol;
     });
   }
 
