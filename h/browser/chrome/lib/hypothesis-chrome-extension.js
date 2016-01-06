@@ -161,7 +161,9 @@ function HypothesisChromeExtension(dependencies) {
 
   /* Opens the onboarding page */
   this.firstRun = function () {
-    chromeTabs.create({url: 'https://hypothes.is/welcome'}, function (tab) {
+    // for testing purposes, open the settings page which gives the
+    // user the option as to which features are enabled
+    chromeTabs.create({url: '/content/settings.html'}, function (tab) {
       state.activateTab(tab.id);
     });
   };
