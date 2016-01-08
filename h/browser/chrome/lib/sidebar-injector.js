@@ -9,6 +9,10 @@ var util = require('./util');
 var CONTENT_TYPE_HTML = 'HTML';
 var CONTENT_TYPE_PDF = 'PDF';
 
+// Firefox ignores the callback to chrome.tabs.executeScript()
+// See https://bugzilla.mozilla.org/show_bug.cgi?id=1210583
+var executeScriptCallbackSupported = false;
+
 function toIIFEString(fn) {
   return '(' + fn.toString() + ')()';
 }
@@ -103,7 +107,7 @@ function SidebarInjector(chromeTabs, dependencies) {
     }
 
     return canInjectScript(tab.url).then(function (canInject) {
-      if (canInject) {
+      if (canInject && executeScriptCallbackSupported) {
         return executeScriptFn(tab.id, {
             code: toIIFEString(detectContentType)
           }).then(function (frameResults) {
@@ -220,13 +224,10 @@ function SidebarInjector(chromeTabs, dependencies) {
 
   function injectScript(tabId, path) {
     return new Promise(function (resolve) {
-      var src  = extensionURL(path);
-      var code = 'var script = document.createElement("script");' +
-        'script.src = "{}";' +
-        'document.body.appendChild(script);';
-      var code = code.replace('{}', src);
-
-      chromeTabs.executeScript(tabId, {code: code}, resolve);
+      chromeTabs.executeScript(tabId, {file: path}, resolve);
+      if (!executeScriptCallbackSupported) {
+        resolve();
+      }
     });
   }
 }
