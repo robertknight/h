@@ -33,6 +33,7 @@ admin_js:
 # the H client application
 app_js:
   contents:
+    - h:static/scripts/shared.bundle.js
     - h:static/scripts/jquery.bundle.js
     - h:static/scripts/polyfills.bundle.js
     - h:static/scripts/app.bundle.js
@@ -66,6 +67,7 @@ inject:
 
 inject_js:
   contents:
+  - h:static/scripts/shared.bundle.js
   - h:static/scripts/jquery.bundle.js
   - h:static/scripts/polyfills.bundle.js
   - h:static/scripts/hypothesis.bundle.js

@@ -1,5 +1,6 @@
 var ngAnnotatePlugin = require('ng-annotate-webpack-plugin');
 var path = require('path');
+var webpack = require('webpack');
 
 function nodeModuleDir(name) {
   return path.resolve(__dirname, 'node_modules', name);
@@ -31,7 +32,8 @@ module.exports = {
     // any CommonJS requires here will speed up
     // the build
     noParse: [
-      /\/node_modules\/angular\/angular.js/
+      /\/node_modules\/angular\/angular.js/,
+      /h\/static\/scripts\/vendor\/(katex|jwz|wgxpath\.install).js/
     ],
 
     loaders: [{
@@ -96,6 +98,8 @@ module.exports = {
     // handles '@ngInject' annotations
     new ngAnnotatePlugin({
       add: true,
-    })
+    }),
+    new webpack.optimize.CommonsChunkPlugin('shared.bundle.js',
+      ['hypothesis', 'app', 'site', 'jquery', 'polyfills'], 2)
   ],
 };
