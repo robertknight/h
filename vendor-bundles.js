@@ -1,3 +1,7 @@
+// Defines a set of vendor bundles which are
+// libraries of 3rd-party code referenced by
+// one or more bundles of Hypothesis client/frontend
+// code
 module.exports = {
   jquery: ['jquery'],
   bootstrap: ['bootstrap'],

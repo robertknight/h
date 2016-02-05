@@ -2,28 +2,30 @@ var ngAnnotatePlugin = require('ng-annotate-webpack-plugin');
 var path = require('path');
 var webpack = require('webpack');
 
+/** Returns the full path to a folder inside node_modules */
 function nodeModuleDir(name) {
   return path.resolve(__dirname, 'node_modules', name);
 }
 
-function useDLL(name) {
+// When a module requires another module which is included
+// in a vendor bundle, a reference to the vendor bundle
+// is generated instead of including the vendor code
+// in the Hypothesis bundle.
+var VENDOR_LIB_PLUGINS = Object.keys(require('./vendor-bundles'))
+  .map(function (name) {
   return new webpack.DllReferencePlugin({
     context: '.',
     manifest: require('./build/' + name + '-manifest.json'),
   });
-}
-
-var DLL_PLUGINS = Object.keys(require('./vendor-bundles')).map(function (name) {
-  return useDLL(name);
 });
 
+/** Generic configuration for JS bundles. */
 var GENERIC_BUILD_CONFIG = {
   output: {
     path: __dirname + '/build',
     filename: '[name].bundle.js',
   },
-
-  plugins: DLL_PLUGINS,
+  plugins: VENDOR_LIB_PLUGINS,
 };
 
 var SITE_EXTENSION_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
@@ -33,6 +35,10 @@ var SITE_EXTENSION_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
   },
 });
 
+/**
+ * Config for the injector library which loads the sidebar and
+ * annotation tools into a page.
+ */
 var INJECTOR_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
   entry: {
     injector: './h/static/scripts/annotator/main',
@@ -105,15 +111,16 @@ var INJECTOR_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
   },
 });
 
+/**
+ * Config for the sidebar app which is the main Hypothesis
+ * client
+ */
 var APP_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
   entry: {
     app: './h/static/scripts/app.coffee',
   },
 
   module: {
-    noParse: [
-      /\/node_modules\/angular\/angular.js/,
-    ],
     loaders: [{
       test: /\.coffee$/,
       loader: 'coffee-loader',
@@ -134,7 +141,7 @@ var APP_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
     new ngAnnotatePlugin({
       add: true,
     }),
-  ].concat(DLL_PLUGINS),
+  ].concat(VENDOR_LIB_PLUGINS),
 });
 
 module.exports = [
