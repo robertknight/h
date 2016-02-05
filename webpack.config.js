@@ -19,15 +19,16 @@ var DLL_PLUGINS = Object.keys(require('./vendor-bundles')).map(function (name) {
 
 var GENERIC_BUILD_CONFIG = {
   output: {
-    path: __dirname + '/h/static/scripts',
+    path: __dirname + '/build',
     filename: '[name].bundle.js',
   },
 
   plugins: DLL_PLUGINS,
 };
 
-var SITE_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
+var SITE_EXTENSION_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
   entry: {
+    extension: './h/browser/chrome/lib/extension',
     site: './h/static/scripts/site',
   },
 });
@@ -104,17 +105,9 @@ var INJECTOR_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
   },
 });
 
-var SIDEBAR_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
+var APP_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
   entry: {
     app: './h/static/scripts/app.coffee',
-  },
-
-  output: {
-    // TODO - Move the build output to a separate
-    // build directory outside the source tree
-    // once webassets is no longer in use
-    path: __dirname + '/build',
-    filename: '[name].bundle.js',
   },
 
   module: {
@@ -145,7 +138,7 @@ var SIDEBAR_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
 });
 
 module.exports = [
-  SIDEBAR_BUILD_CONFIG,
+  APP_BUILD_CONFIG,
   INJECTOR_BUILD_CONFIG,
-  SITE_BUILD_CONFIG,
+  SITE_EXTENSION_BUILD_CONFIG,
 ];
