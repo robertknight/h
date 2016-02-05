@@ -11,7 +11,7 @@ function nodeModuleDir(name) {
 // in a vendor bundle, a reference to the vendor bundle
 // is generated instead of including the vendor code
 // in the Hypothesis bundle.
-var VENDOR_LIB_PLUGINS = Object.keys(require('./vendor-bundles'))
+var vendorLibPlugins = Object.keys(require('./vendor-bundles'))
   .map(function (name) {
   return new webpack.DllReferencePlugin({
     context: '.',
@@ -19,13 +19,36 @@ var VENDOR_LIB_PLUGINS = Object.keys(require('./vendor-bundles'))
   });
 });
 
+var optimizationPlugins = [];
+if (process.env.NODE_ENV === 'production') {
+  optimizationPlugins = [
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        warnings: false,
+      },
+      mangle: {
+        // Do not alter references to '[name]_lib' variables which are
+        // references to vendor bundles
+        except: Object.keys(require('./vendor-bundles')).map(function (name) {
+          return name + '_lib';
+        })
+      },
+    }),
+  ];
+}
+
+var defaultPlugins = [].concat(
+  optimizationPlugins,
+  vendorLibPlugins
+);
+
 /** Generic configuration for JS bundles. */
 var GENERIC_BUILD_CONFIG = {
   output: {
     path: __dirname + '/build',
     filename: '[name].bundle.js',
   },
-  plugins: VENDOR_LIB_PLUGINS,
+  plugins: defaultPlugins,
 };
 
 var SITE_EXTENSION_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
@@ -141,7 +164,7 @@ var APP_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
     new ngAnnotatePlugin({
       add: true,
     }),
-  ].concat(VENDOR_LIB_PLUGINS),
+  ].concat(defaultPlugins),
 });
 
 module.exports = [
