@@ -2,6 +2,8 @@ var ngAnnotatePlugin = require('ng-annotate-webpack-plugin');
 var path = require('path');
 var webpack = require('webpack');
 
+var outDir = __dirname + '/build/scripts';
+
 /** Returns the full path to a folder inside node_modules */
 function nodeModuleDir(name) {
   return path.resolve(__dirname, 'node_modules', name);
@@ -15,7 +17,7 @@ var vendorLibPlugins = Object.keys(require('./vendor-bundles'))
   .map(function (name) {
   return new webpack.DllReferencePlugin({
     context: '.',
-    manifest: require('./build/' + name + '-manifest.json'),
+    manifest: require(outDir + '/' + name + '-manifest.json'),
   });
 });
 
@@ -45,7 +47,7 @@ var defaultPlugins = [].concat(
 /** Generic configuration for JS bundles. */
 var GENERIC_BUILD_CONFIG = {
   output: {
-    path: __dirname + '/build',
+    path: outDir,
     filename: '[name].bundle.js',
   },
   plugins: defaultPlugins,

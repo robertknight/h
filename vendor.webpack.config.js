@@ -6,7 +6,7 @@
 var path = require('path');
 var webpack = require('webpack');
 
-var outDir = __dirname + '/build';
+var outDir = __dirname + '/build/scripts';
 
 var optimizationPlugins = [];
 if (process.env.NODE_ENV === 'production') {
