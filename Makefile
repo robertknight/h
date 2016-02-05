@@ -4,6 +4,8 @@ NPM_BIN = "$$(npm bin)"
 
 ISODATE := $(shell TZ=UTC date '+%Y%m%d')
 BUILD_ID := $(shell python -c 'import h; print(h.__version__)')
+WEBPACK_DEV = $(NPM_BIN)/webpack --hide-modules
+WEBPACK_PROD = $(NPM_BIN)/webpack --hide-modules --optimize-minimize
 
 # Unless the user has specified otherwise in their environment, it's probably a
 # good idea to refuse to install unless we're in an activated virtualenv.
@@ -64,6 +66,14 @@ client-extension-test: deps
 
 client-extension-test-watch: deps
 	@$(NPM_BIN)/karma start h/browser/chrome/karma.config.js
+
+client-webpack: deps
+	@$(WEBPACK_DEV) --config vendor.webpack.config.js
+	@$(WEBPACK_DEV) --config webpack.config.js
+
+client-webpack-prod: deps
+	@$(WEBPACK_PROD) --config vendor.webpack.config.js
+	@$(WEBPACK_PROD) --config webpack.config.js
 
 cover:
 	@python setup.py test --cov

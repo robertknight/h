@@ -6,25 +6,35 @@ function nodeModuleDir(name) {
   return path.resolve(__dirname, 'node_modules', name);
 }
 
-module.exports = {
-  entry: {
-    // JS bundles
-    hypothesis: './h/static/scripts/annotator/main',
-    app: './h/static/scripts/app.coffee',
-    site: './h/static/scripts/site',
+function useDLL(name) {
+  return new webpack.DllReferencePlugin({
+    context: '.',
+    manifest: require('./build/' + name + '-manifest.json'),
+  });
+}
 
-    // vendor JS bundles
-    jquery: 'jquery',
-    bootstrap: 'bootstrap',
-    polyfills: './h/static/scripts/polyfills',
-  },
+var DLL_PLUGINS = Object.keys(require('./vendor-bundles')).map(function (name) {
+  return useDLL(name);
+});
 
+var GENERIC_BUILD_CONFIG = {
   output: {
-    // TODO - Move the build output to a separate
-    // build directory outside the source tree
-    // once webassets is no longer in use
     path: __dirname + '/h/static/scripts',
     filename: '[name].bundle.js',
+  },
+
+  plugins: DLL_PLUGINS,
+};
+
+var SITE_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
+  entry: {
+    site: './h/static/scripts/site',
+  },
+});
+
+var INJECTOR_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
+  entry: {
+    injector: './h/static/scripts/annotator/main',
   },
 
   module: {
@@ -32,7 +42,6 @@ module.exports = {
     // any CommonJS requires here will speed up
     // the build
     noParse: [
-      /\/node_modules\/angular\/angular.js/,
       /h\/static\/scripts\/vendor\/(katex|jwz|wgxpath\.install).js/
     ],
 
@@ -93,13 +102,50 @@ module.exports = {
       '.coffee'
     ],
   },
+});
+
+var SIDEBAR_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
+  entry: {
+    app: './h/static/scripts/app.coffee',
+  },
+
+  output: {
+    // TODO - Move the build output to a separate
+    // build directory outside the source tree
+    // once webassets is no longer in use
+    path: __dirname + '/build',
+    filename: '[name].bundle.js',
+  },
+
+  module: {
+    noParse: [
+      /\/node_modules\/angular\/angular.js/,
+    ],
+    loaders: [{
+      test: /\.coffee$/,
+      loader: 'coffee-loader',
+    }]
+  },
+
+  resolve: {
+    extensions: [
+      // default list of module extensions
+      '', '.webpack.js', '.web.js', '.js',
+      // CoffeeScript
+      '.coffee'
+    ],
+  },
 
   plugins: [
     // handles '@ngInject' annotations
     new ngAnnotatePlugin({
       add: true,
     }),
-    new webpack.optimize.CommonsChunkPlugin('shared.bundle.js',
-      ['hypothesis', 'app', 'site', 'jquery', 'polyfills'], 2)
-  ],
-};
+  ].concat(DLL_PLUGINS),
+});
+
+module.exports = [
+  SIDEBAR_BUILD_CONFIG,
+  INJECTOR_BUILD_CONFIG,
+  SITE_BUILD_CONFIG,
+];
