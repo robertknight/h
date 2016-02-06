@@ -58,6 +58,13 @@ var SITE_EXTENSION_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
     extension: './h/browser/chrome/lib/extension',
     site: './h/static/scripts/site',
   },
+
+  // Bootstrap references jQuery
+  plugins: [
+    new webpack.ProvidePlugin({
+      'jQuery': 'jquery',
+    }),
+  ].concat(defaultPlugins),
 });
 
 /**
