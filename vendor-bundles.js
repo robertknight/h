@@ -9,6 +9,7 @@ module.exports = {
   angular: [
     'angular',
     'angular-animate',
+    'angular-jwt',
     'angular-resource',
     'angular-route',
     'angular-sanitize',
