@@ -4,8 +4,8 @@ NPM_BIN = "$$(npm bin)"
 
 ISODATE := $(shell TZ=UTC date '+%Y%m%d')
 BUILD_ID := $(shell python -c 'import h; print(h.__version__)')
-WEBPACK_DEV = $(NPM_BIN)/webpack --hide-modules
-WEBPACK_PROD = $(NPM_BIN)/webpack --hide-modules --optimize-minimize
+WEBPACK_DEV = $(NPM_BIN)/webpack -d --hide-modules
+WEBPACK_PROD = NODE_ENV=production $(NPM_BIN)/webpack --hide-modules
 
 # Unless the user has specified otherwise in their environment, it's probably a
 # good idea to refuse to install unless we're in an activated virtualenv.
