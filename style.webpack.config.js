@@ -5,8 +5,8 @@ module.exports = {
   entry: {
     // H
     app: './h/static/styles/app.scss',
-    inject: ['./h/static/styles/annotator/inject.scss',
-             './h/static/styles/annotator/pdfjs-overrides.scss'],
+    injector: ['./h/static/styles/annotator/inject.scss',
+               './h/static/styles/annotator/pdfjs-overrides.scss'],
     site: './h/static/styles/site.scss',
     helpPage: './h/static/styles/help-page.scss',
     admin: './h/static/styles/admin.scss',

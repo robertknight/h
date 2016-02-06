@@ -147,6 +147,7 @@ def render_embed_js(webassets_env, app_html_url):
     template = jinja_env.get_template('embed.js.jinja2')
     template_args = {
         'app_html_url': app_html_url,
-        'inject_js_urls': asset_urls(webassets_env, 'inject'),
+        'inject_js_urls': asset_urls(webassets_env, 'inject_js') +
+                          asset_urls(webassets_env, 'inject_css')
     }
     return template.render(template_args)
