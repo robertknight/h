@@ -1,3 +1,4 @@
+var autoprefixer = require('autoprefixer');
 var webpack = require('webpack');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
@@ -31,7 +32,7 @@ module.exports = {
   module: {
     loaders: [{
       test: /\.(css|scss)$/,
-      loader: ExtractTextPlugin.extract(['css','sass']),
+      loader: ExtractTextPlugin.extract(['css','postcss','sass']),
     },{
       test: /\.(woff|woff2|eot|ttf)$/,
       loader: 'file?name=fonts/[name].[ext]',
@@ -43,6 +44,10 @@ module.exports = {
 
   sassLoader: {
     includePaths: ['node_modules/compass-mixins/lib/'],
+  },
+
+  postcss: function () {
+    return [autoprefixer];
   },
 
   plugins: [
