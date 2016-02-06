@@ -4,7 +4,7 @@ Provides functions for building the assets for the Hypothesis client
 application.
 """
 import json
-from urlparse import urlparse
+from h._compat import urlparse
 
 from jinja2 import Environment, PackageLoader
 from h import __version__
@@ -58,7 +58,7 @@ def asset_urls(webassets_env, name):
 
 
 def url_with_path(url):
-    if urlparse(url).path == '':
+    if urlparse.urlparse(url).path == '':
         return '{}/'.format(url)
     else:
         return url
@@ -71,7 +71,7 @@ def _app_html_context(webassets_env, api_url, service_url, ga_tracking_id,
     HTML tempate.
     """
 
-    if urlparse(service_url).hostname == 'localhost':
+    if urlparse.urlparse(service_url).hostname == 'localhost':
         ga_cookie_domain = 'none'
     else:
         ga_cookie_domain = 'auto'
@@ -137,17 +137,24 @@ def render_app_html(webassets_env,
     return template.render(_merge(assets_dict, extra))
 
 
-def render_embed_js(webassets_env, app_html_url):
+def render_embed_js(webassets_env, app_html_url, base_url=None):
     """
     Return the code for the script which is injected into a page in order
     to load the Hypothesis annotation client into it.
 
     :param app_html_url: The URL of the app.html page for the sidebar
     """
+    inject_asset_urls = (asset_urls(webassets_env, 'inject_js') +
+                         asset_urls(webassets_env, 'inject_css'))
+
+    if base_url:
+        def absolute_url(url):
+            return urlparse.urljoin(base_url, url)
+        inject_asset_urls = map(absolute_url, inject_asset_urls)
+
     template = jinja_env.get_template('embed.js.jinja2')
     template_args = {
         'app_html_url': app_html_url,
-        'inject_js_urls': asset_urls(webassets_env, 'inject_js') +
-                          asset_urls(webassets_env, 'inject_css')
+        'inject_js_urls': inject_asset_urls,
     }
     return template.render(template_args)
