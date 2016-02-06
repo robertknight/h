@@ -70,10 +70,12 @@ client-extension-test-watch: deps
 client-webpack: deps
 	@$(WEBPACK_DEV) --config vendor.webpack.config.js
 	@$(WEBPACK_DEV) --config webpack.config.js
+	@$(WEBPACK_DEV) --config style.webpack.config.js
 
 client-webpack-prod: deps
 	@$(WEBPACK_PROD) --config vendor.webpack.config.js
 	@$(WEBPACK_PROD) --config webpack.config.js
+	@$(WEBPACK_PROD) --config style.webpack.config.js
 
 cover:
 	@python setup.py test --cov
