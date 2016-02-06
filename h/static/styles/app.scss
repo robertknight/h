@@ -20,6 +20,10 @@ $base-line-height: 20px;
 @import './simple-search';
 @import './top-bar';
 
+.noise {
+  background: url('../images/noise_1.png');
+}
+
 body {
   $sidebar-h-padding: 9px;
 

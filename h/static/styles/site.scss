@@ -23,6 +23,10 @@
 // pages
 @import './home';
 
+.noise {
+  background: url('../images/noise_1.png');
+}
+
 // body with grey noise background and Lato font used
 // in the sidebar and groups pages
 .body--default {
