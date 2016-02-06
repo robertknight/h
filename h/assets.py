@@ -39,7 +39,14 @@ def asset_response_subscriber(event):
 
 
 def includeme(config):
-    config.registry.settings.setdefault('webassets.bundles', 'h:assets.yaml')
+    WEBASSETS_DEFAULTS = {
+        'webassets.bundles': 'h:assets.yaml',
+        'webassets.base_dir': 'h:../build',
+        'webassets.base_url': '/assets',
+    }
+    for key, value in WEBASSETS_DEFAULTS.iteritems():
+        config.registry.settings.setdefault(key, value)
+
     config.include('pyramid_webassets')
 
     # Set up a predicate and subscriber to set CORS headers on asset responses
