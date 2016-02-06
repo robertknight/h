@@ -106,12 +106,6 @@ var INJECTOR_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
       loader: 'coffee-loader',
     },
 
-    // expose jQuery as window.{jQuery,$}
-    {
-      test: require.resolve('jquery'),
-      loader: 'expose?$!expose?jQuery'
-    },
-
     // AnnotatorJS is not a CommonJS module,
     // it sets `this.Annotator` instead
     {
@@ -165,6 +159,13 @@ var APP_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
     // handles '@ngInject' annotations
     new ngAnnotatePlugin({
       add: true,
+    }),
+
+    // expose Angular as 'window.angular',
+    // expose jQuery as 'window.jQuery' in
+    // modules that look for those variables
+    new webpack.ProvidePlugin({
+      'window.angular': 'angular',
     }),
   ].concat(defaultPlugins),
 });
