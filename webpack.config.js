@@ -128,6 +128,12 @@ var INJECTOR_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
       '.coffee'
     ],
   },
+
+  plugins: [
+    new webpack.ProvidePlugin({
+      'jQuery': 'jquery',
+    }),
+  ].concat(defaultPlugins),
 });
 
 /**
@@ -161,9 +167,7 @@ var APP_BUILD_CONFIG = Object.assign({}, GENERIC_BUILD_CONFIG, {
       add: true,
     }),
 
-    // expose Angular as 'window.angular',
-    // expose jQuery as 'window.jQuery' in
-    // modules that look for those variables
+    // expose Angular as 'window.angular'
     new webpack.ProvidePlugin({
       'window.angular': 'angular',
     }),
