@@ -49,6 +49,7 @@ app_css:
 inject_js:
   contents:
   - scripts/polyfills.bundle.js
+  - scripts/jquery.bundle.js
   - scripts/injector.bundle.js
 
 
@@ -83,4 +84,3 @@ help_page_css:
   contents:
     - styles/icomoon.css
     - styles/helpPage.css
-
