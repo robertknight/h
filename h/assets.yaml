@@ -61,7 +61,9 @@ inject_css:
 
 # the H website
 site_js:
-  contents: scripts/site.bundle.js
+  contents:
+    - scripts/raven.bundle.js
+    - scripts/site.bundle.js
 
 site_css:
   contents: styles/icomoon.css
