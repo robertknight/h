@@ -29,6 +29,7 @@ describe('HypothesisChromeExtension', function () {
   var ext;
   var fakeChromeTabs;
   var fakeChromeBrowserAction;
+  var fakeErrors;
   var fakeHelpPage;
   var fakeTabStore;
   var fakeTabState;
