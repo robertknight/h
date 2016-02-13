@@ -8,6 +8,11 @@ import documentDomainFilter from '../filter/document-domain';
 
 import angular from 'angular';
 
+import * as dateUtil from '../date-util';
+
+var time = require('../time')();
+var settings = require('../settings')([document]);
+
 var documentTitleFn = documentTitleFilter();
 var documentDomainFn = documentDomainFilter();
 
@@ -50,11 +55,11 @@ function UserLabel(props) {
   var accountName = parseAccountID(props.user).username;
   return <a class="annotation-user"
      target="_blank"
-     href={`${props.serviceUrl}/u${props.user}`}
+     href={`${settings.serviceUrl}/u${props.user}`}
      >{accountName}</a>
 }
 
-function AnnotationHeader(props) {
+function AnnotationDocumentInfo(props) {
   console.log('rendering AnnotationHeader', props);
   var group = props.group;
   var document = props.document;
@@ -82,8 +87,58 @@ function AnnotationHeader(props) {
   </span>
 }
 
+function AnnotationHeader(props) {
+  var relativeTimestamp = time.toFuzzyString(props.updated);
+  var absoluteTimestamp = dateUtil.format(new Date(props.updated));
+
+  var replyText = '';
+  if (props.replyCount === 1) {
+    replyText = '1 reply';
+  } else {
+    replyText = props.replyCount + ' replies';
+  }
+
+  return <header class="annotation-header">
+    {props.user ? <span>
+      <UserLabel user={props.user}/>
+
+      <span class="annotation-collapsed-replies">
+        <a class="annotation-link" href=""
+          onClick={() => props.replyCountClick()}>{replyText}</a>
+      </span>
+
+      <br/>
+
+      <AnnotationDocumentInfo
+        document={props.document}
+        group={props.group}
+        is-editing={props.isEditing}
+        is-highlight={props.isHighlight}
+        show-citation={props.showCitation}
+        is-private={props.isPrivate}/>
+    </span> : null}
+
+    <span class="u-flex-spacer"></span>
+
+    {!props.isEditing && props.updated ? <a class="annotation-link"
+       target="_blank"
+       title={absoluteTimestamp}
+       href={settings.serviceUrl + 'a/' + props.id}
+       >{relativeTimestamp}</a> : null}
+  </header>
+}
+
 var userLabel = directive(UserLabel, {
   user: '=',
+});
+
+var annotationDocumentInfo = directive(AnnotationDocumentInfo, {
+  document: '=',
+  group: '=',
+  isEditing: '=',
+  isHighlight: '=',
+  showCitation: '=',
+  isPrivate: '=',
 });
 
 var annotationHeader = directive(AnnotationHeader, {
@@ -93,10 +148,14 @@ var annotationHeader = directive(AnnotationHeader, {
   isHighlight: '=',
   showCitation: '=',
   isPrivate: '=',
+  user: '=',
+  id: '=',
+  updated: '=',
 });
 
 module.exports = {
   directive: directive,
   userLabel: userLabel,
+  annotationDocumentInfo: annotationDocumentInfo,
   annotationHeader: annotationHeader,
 };

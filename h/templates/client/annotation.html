@@ -3,39 +3,20 @@
 </header>
 
 <div ng-if="vm.user()">
-  <header class="annotation-header">
-    <!-- User -->
-    <span ng-if="vm.user()">
-      <annotation-user-label user="vm.user()"></annotation-user-label>
+  <annotation-header
+   user="vm.user()"
+   document="vm.document()"
+   group="vm.group()"
+   id="vm.id()"
+   is-editing="vm.editing()"
+   is-highlight="vm.isHighlight()"
+   updated="vm.updated()"
+   show-citation="::!vm.isSidebar"
+   is-private="vm.isPrivate"
+   reply-count="replyCount"
+  >
 
-      <span class="annotation-collapsed-replies">
-        <a class="annotation-link" href=""
-          ng-click="replyCountClick()"
-          ng-pluralize count="replyCount"
-          when="{'0': '', 'one': '1 reply', 'other': '{} replies'}"></a>
-      </span>
-
-      <br>
-
-      <annotation-header
-        document="vm.document()"
-        group="vm.group()"
-        is-editing="vm.editing()"
-        is-highlight="vm.isHighlight()"
-        show-citation="::!vm.isSidebar"
-        is-private="vm.isPrivate"></annotation-header>
-    </span>
-
-    <span class="u-flex-spacer"></span>
-
-    <!-- Timestamp -->
-    <a class="annotation-link"
-       target="_blank"
-       title="{{vm.absoluteTimestamp}}"
-       ng-if="!vm.editing() && vm.updated()"
-       ng-href="{{::vm.serviceUrl}}a/{{vm.id()}}"
-       >{{vm.relativeTimestamp}}</a>
-  </header>
+  </annotation-header>
 
   <!-- Excerpts -->
   <section class="annotation-quote-list"

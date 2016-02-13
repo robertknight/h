@@ -117,6 +117,7 @@ module.exports = angular.module('h', [
 .directive('sortDropdown', require('./directive/sort-dropdown'))
 .directive('topBar', require('./directive/top-bar'))
 .directive('annotationUserLabel', require('./directive/preact').userLabel)
+.directive('annotationDocumentInfo', require('./directive/preact').annotationDocumentInfo)
 .directive('annotationHeader', require('./directive/preact').annotationHeader)
 
 .filter('converter', require('./filter/converter'))
