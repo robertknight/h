@@ -4,6 +4,21 @@
 var dateUtil = require('../date-util');
 var events = require('../events');
 
+var angular = require('angular');
+
+function cache(valueFn) {
+  var oldValue;
+  return function () {
+    var newValue = valueFn();
+    if (angular.equals(oldValue, newValue)) {
+      return oldValue;
+    }
+    oldValue = newValue;
+    return newValue;
+  };
+}
+
+
 /** Return a domainModel tags array from the given vm tags array.
  *
  * domainModel.tags and vm.form.tags use different formats.  This
@@ -464,9 +479,9 @@ function AnnotationController(
   };
 
   /** Return some metadata extracted from the annotated document. */
-  vm.document = function() {
+  vm.document = cache(function() {
     return extractDocumentMetadata(domainModel);
-  };
+  });
 
   /**
     * @ngdoc method

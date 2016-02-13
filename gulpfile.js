@@ -74,7 +74,7 @@ var baseOpts = {
 
 var appBundleOpts = Object.assign({}, baseOpts, {
   name: 'app',
-  transforms: ['coffee'],
+  transforms: ['coffee', 'babel'],
   entry: './h/static/scripts/app.coffee',
 });
 

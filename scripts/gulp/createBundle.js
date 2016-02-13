@@ -1,5 +1,6 @@
 'use strict';
 
+var babelify = require('babelify');
 var coffeeify = require('coffeeify');
 var browserify = require('browserify');
 var exorcist = require('exorcist');
@@ -96,9 +97,18 @@ module.exports = function createBundle(opts) {
   bundle.add(opts.entry || []);
   bundle.external(opts.external || []);
 
+
   (opts.transforms || []).forEach(function (transform) {
     if (transform === 'coffee') {
       bundle.transform(coffeeify);
+    } else if (transform === 'babel') {
+      bundle.transform(babelify.configure({
+        ignore: /vendor/,
+        presets: ['es2015'],
+        plugins: [
+          ['transform-react-jsx', { pragma: 'h' }]
+        ],
+      }));
     }
   });
 
@@ -140,4 +150,3 @@ module.exports = function createBundle(opts) {
     return build();
   }
 }
-
