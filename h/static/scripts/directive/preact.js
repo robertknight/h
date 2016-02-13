@@ -17,7 +17,16 @@ var documentTitleFn = documentTitleFilter();
 var documentDomainFn = documentDomainFilter();
 
 /**
- * Creates an Angular wrapper around a preact component.
+ * Creates an Angular directive which displays a preact component.
+ *
+ * @param {preact.Component|Function} Component - The preact component
+ *                                                constructor.
+ * @param {Object} props - Object specifying the names and types of properties
+ *                         passed from Angular to preact.
+ *                         This takes the same format as the 'scope'
+ *                         property of Angular directives.
+ *
+ *                         eg. { count: '=', onClick: '&' }
  */
 function directive(Component, props) {
   return function () {
@@ -27,12 +36,15 @@ function directive(Component, props) {
       link: function (scope, elem) {
         var propValues = {};
         var renderScheduled = false;
+        var firstRender = true;
 
+        // Update the rendered preact component when
         function render() {
-          // FIXME - This shouldn't be needed
-          elem[0].innerHTML = '';
           renderScheduled = false;
-          preact.render(preact.h(Component, propValues), elem[0]);
+          var root = elem[0];
+          var replacedElement = firstRender ? undefined : root.lastChild;
+          preact.render(preact.h(Component, propValues), root, replacedElement);
+          firstRender = false;
         }
 
         // Watch the input properties from Angular for changes
@@ -51,6 +63,9 @@ function directive(Component, props) {
   };
 }
 
+/**
+ * A label displaying an annotator's username and linking to their account.
+ */
 function UserLabel(props) {
   var accountName = parseAccountID(props.user).username;
   return <a class="annotation-user"
@@ -59,8 +74,10 @@ function UserLabel(props) {
      >{accountName}</a>
 }
 
+/**
+ * Section of an annotation card header displaying privacy and group info.
+ */
 function AnnotationDocumentInfo(props) {
-  console.log('rendering AnnotationHeader', props);
   var group = props.group;
   var document = props.document;
   var isHighlight = props.isHighlight;
@@ -87,10 +104,72 @@ function AnnotationDocumentInfo(props) {
   </span>
 }
 
-function AnnotationHeader(props) {
-  var relativeTimestamp = time.toFuzzyString(props.updated);
-  var absoluteTimestamp = dateUtil.format(new Date(props.updated));
+/**
+ * Link to an annotation which displays the relative age of the annotation
+ * and updates itself dynamically.
+ */
+class AnnotationTimestamp extends preact.Component {
+  _updateTimestamp() {
+    var relativeTimestamp = time.toFuzzyString(this.props.updated);
+    var absoluteTimestamp = '';
+    if (this.props.updated) {
+      absoluteTimestamp = dateUtil.format(new Date(this.props.updated));
+    }
 
+    this.setState({
+      relativeTimestamp,
+      absoluteTimestamp,
+    })
+  }
+
+  _resetTimer() {
+    if (this.cancelRefresh) {
+      this.cancelRefresh();
+    }
+    this.cancelRefresh = time.decayingInterval(this.props.updated, () => {
+      this._updateTimestamp();
+    });
+    this._updateTimestamp();
+  }
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      relativeTimestamp: '',
+      absoluteTimestamp: '',
+    };
+    this._resetTimer();
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (this.props.updated !== nextProps.updated) {
+      this._resetTimer();
+    }
+  }
+
+  componentDidUpdate() {
+    this._updateTimestamp();
+  }
+
+  render() {
+    return <a class="annotation-link"
+       target="_blank"
+       title={this.state.absoluteTimestamp}
+       href={settings.serviceUrl + 'a/' + this.props.id}
+       >{this.state.relativeTimestamp}</a>
+  }
+
+  componentWillUnmount() {
+    if (this.cancelRefresh) {
+      this.cancelRefresh();
+    }
+  }
+}
+
+/**
+ * Header for an annotation card displaying
+ */
+function AnnotationHeader(props) {
   var replyText = '';
   if (props.replyCount === 1) {
     replyText = '1 reply';
@@ -120,11 +199,8 @@ function AnnotationHeader(props) {
 
     <span class="u-flex-spacer"></span>
 
-    {!props.isEditing && props.updated ? <a class="annotation-link"
-       target="_blank"
-       title={absoluteTimestamp}
-       href={settings.serviceUrl + 'a/' + props.id}
-       >{relativeTimestamp}</a> : null}
+    {!props.isEditing && props.updated ?
+      <AnnotationTimestamp id={props.id} updated={props.updated}/> : null}
   </header>
 }
 
