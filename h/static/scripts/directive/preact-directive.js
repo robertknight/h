@@ -1,3 +1,12 @@
+/**
+ * preact-directive provides a way to render a preact component tree
+ * into an existing Angular application.
+ *
+ * The implementation uses preact, a very lightweight implementation of
+ * the React APIs. This module should be easily adaptable to work
+ * with similar frameworks, including the full version of React.
+ */
+
 import * as preact from 'preact';
 import {h} from 'preact';
 
@@ -68,10 +77,24 @@ class ErrorBox extends preact.Component {
 }
 
 /**
- * Creates an Angular directive which renders a preact component.
+ * Creates an Angular directive which renders a preact component tree.
  *
  * This provides a way to render a subtree of preact components inside
- * a larger Angular application.
+ * a larger Angular application. The created directive will watch the
+ * input attributes for changes using $scope.$watch() and re-render the
+ * component tree when the inputs change.
+ *
+ * Usage:
+ *
+ *    angular.module('myApp', [])
+ *      .directive('myButton', preactDirective(MyButton, {
+ *        label: '=',
+ *        onClick: '&',
+ *      }))
+ *
+ * Then in your Angular templates:
+ *
+ *    <my-button on-click="onClickHandler()" label="'Click me'"></my-button>
  *
  * @param {preact.Component|Function} Component - The preact component
  *                                                constructor.
