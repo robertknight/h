@@ -204,6 +204,43 @@ function AnnotationHeader(props) {
   </header>
 }
 
+function AnnotationActions(props) {
+  if (props.isSaving) {
+    return <div>Saving…</div>;
+  }
+
+  if (props.isEditing || !props.id) {
+    return null;
+  }
+
+  var annotationURI = settings.serviceUrl + 'a/' + props.id;
+
+  return <div class="annotation-actions">
+    <button class="small btn btn-clean"
+            onClick={() => props.onReply()}
+            ><i class="h-icon-reply btn-icon"></i> Reply</button>
+    <span class="share-dialog-wrapper">
+      <button class="small btn btn-clean"
+              onClick={e => props.onShare({$event: e})}
+              ><i class="h-icon-link btn-icon"></i> Link</button>
+      <span class="share-dialog" onClick={e => e.stopPropagation()}>
+        <a target="_blank"
+           class="h-icon-link"
+           href={annotationURI}
+           title="Open in new tab"></a>
+        <input type="text" value={annotationURI} readonly/>
+      </span>
+    </span>
+    {props.canUpdate ? <button class="small btn btn-clean"
+            onClick={() => props.onEdit()}
+            ><i class="h-icon-edit btn-icon"></i> Edit</button> : null}
+    {props.canDelete ?
+    <button class="small btn btn-clean"
+            onClick={() => props.onDelete()}
+            ><i class="h-icon-delete btn-icon"></i> Delete…</button> : null}
+  </div>
+}
+
 var userLabel = directive(UserLabel, {
   user: '=',
 });
@@ -213,20 +250,32 @@ var annotationDocumentInfo = directive(AnnotationDocumentInfo, {
   group: '=',
   isEditing: '=',
   isHighlight: '=',
-  showCitation: '=',
   isPrivate: '=',
+  showCitation: '=',
 });
 
 var annotationHeader = directive(AnnotationHeader, {
   document: '=',
   group: '=',
+  id: '=',
   isEditing: '=',
   isHighlight: '=',
-  showCitation: '=',
   isPrivate: '=',
-  user: '=',
-  id: '=',
+  showCitation: '=',
   updated: '=',
+  user: '=',
+});
+
+var annotationActions = directive(AnnotationActions, {
+  canDelete: '=',
+  canUpdate: '=',
+  id: '=',
+  isEditing: '=',
+  isSaving: '=',
+  onEdit: '&',
+  onReply: '&',
+  onShare: '&',
+  onDelete: '&',
 });
 
 module.exports = {
@@ -234,4 +283,5 @@ module.exports = {
   userLabel: userLabel,
   annotationDocumentInfo: annotationDocumentInfo,
   annotationHeader: annotationHeader,
+  annotationActions: annotationActions,
 };
