@@ -118,6 +118,7 @@ module.exports = angular.module('h', [
 .directive('topBar', require('./directive/top-bar'))
 .directive('annotationHeader', require('./directive/preact').annotationHeader)
 .directive('annotationActions', require('./directive/preact').annotationActions)
+.directive('replyCountLink', require('./directive/preact').replyCountLink)
 
 .filter('converter', require('./filter/converter'))
 .filter('persona', require('./filter/persona').filter)

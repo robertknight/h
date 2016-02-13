@@ -107,12 +107,8 @@
       </a>
     </div>
 
-    <div class="annotation-replies" ng-if="replyCount > 0">
-      <a class="annotation-link" href=""
-         ng-click="replyCountClick()"
-         ng-pluralize count="replyCount"
-         when="{'0': '', 'one': '1 reply', 'other': '{} replies'}"></a>
-    </div>
+    <reply-count-link on-click="replyCountClick()" reply-count="replyCount">
+    </reply-count-link>
 
     <annotation-actions
       can-delete="vm.authorize('delete')"

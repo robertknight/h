@@ -16,8 +16,77 @@ var settings = require('../settings')([document]);
 var documentTitleFn = documentTitleFilter();
 var documentDomainFn = documentDomainFilter();
 
+function componentName(Component) {
+  return Component.displayName || Component.name;
+}
+
 /**
- * Creates an Angular directive which displays a preact component.
+ * Displays details of an error.
+ *
+ * A component that can be displayed in place of a source component
+ * if rendering results in an error.
+ *
+ * In development, this displays a very loud and obvious error.
+ * Clicking the box displays the details of the error.
+ */
+class ErrorBox extends preact.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      expanded: false,
+    };
+  }
+
+  _toggleStacktrace() {
+    this.setState({expanded: !this.state.expanded});
+  }
+
+  render() {
+    // Render an error box to make the failed render very obvious.
+    // This should be customized to report an error and display
+    // something less dramatic in a production build
+    var style = {
+      backgroundColor: 'red',
+      color: 'white',
+      fontWeight: 'bold',
+      padding: 5,
+      marginTop: 10,
+    };
+    var stacktrace;
+    if (this.state.expanded) {
+      var stacktraceStyle = {
+        backgroundColor: `rgba(255,255,255,0.3)`,
+        padding: 10,
+        maxHeight: 150,
+        overflow: 'auto',
+      };
+      var messageStyle = { marginBottom: 5 };
+      stacktrace = <div style={stacktraceStyle} onClick={e => e.stopPropagation()}>
+        <p style={messageStyle}>{this.props.error.message}</p>
+        {this.props.error.stack}
+      </div>
+    }
+    var sadFaceStyle = {
+      fontSize: 25,
+      fontWeight: 'normal',
+      margin: 5,
+    };
+    return <div style={style}
+      onClick={() => this._toggleStacktrace()}
+      title="Toggle error details"
+      >
+      Failed to render {componentName(this.props.Component)}
+        <span style={sadFaceStyle}>😞</span>
+      {stacktrace}
+    </div>;
+  }
+}
+
+/**
+ * Creates an Angular directive which renders a preact component.
+ *
+ * This provides a way to render a subtree of preact components inside
+ * a larger Angular application.
  *
  * @param {preact.Component|Function} Component - The preact component
  *                                                constructor.
@@ -34,29 +103,58 @@ function directive(Component, props) {
       restrict: 'E',
       scope: props,
       link: function (scope, elem) {
+        // The current input property values for the next render
         var propValues = {};
+        // Set to true when a change in at least one of the input
+        // properties has been detected in the current $digest cycle.
         var renderScheduled = false;
-        var firstRender = true;
 
-        // Update the rendered preact component when
+        // Update the rendered preact component when the inputs
+        // change
         function render() {
           renderScheduled = false;
           var root = elem[0];
-          var replacedElement = firstRender ? undefined : root.lastChild;
-          preact.render(preact.h(Component, propValues), root, replacedElement);
-          firstRender = false;
+
+          // The third argument to preact.render() is the element to replace.
+          // preact doesn't like this being an empty text node.
+          var replacedElement;
+          if (root.lastChild && root.lastChild.nodeType === Node.ELEMENT_NODE) {
+            replacedElement = root.lastChild;
+          }
+
+          try {
+            var reactElement = preact.h(Component, propValues);
+            preact.render(reactElement, root, replacedElement);
+          } catch (err) {
+            // Render an error box to make the failed render very obvious.
+            // This should be customized to report an error and display
+            // something less dramatic in a production build
+            console.error(`Error rendering ${componentName(Component)}:`, err);
+            preact.render(<ErrorBox Component={Component} error={err}/>,
+              root, replacedElement);
+          }
         }
 
-        // Watch the input properties from Angular for changes
-        // and re-render the component if the inputs change.
+        // Watch the input properties to the component from
+        // the Angular directive and re-render the preact component tree
+        // when they change.
+        //
+        // We're watching each property with a separate $watch here,
+        // but we could probably do better with a custom watch function.
         Object.keys(props).forEach(function (prop) {
           scope.$watch(prop, function (newValue) {
             propValues[prop] = newValue;
             if (!renderScheduled) {
               renderScheduled = true;
+              // Re-render at the end of the $digest loop.
+              // Using $applyAsync causes us to only re-render once, even
+              // if several of the input properties change.
+              //
+              // Additional debouncing could also be done here to reduce
+              // the frequency of updates.
               scope.$applyAsync(render);
             }
-          }, true /* use angular.equals() */);
+          });
         });
       }
     }
@@ -166,25 +264,35 @@ class AnnotationTimestamp extends preact.Component {
   }
 }
 
+function ReplyCountLink(props) {
+  // FIXME - Angular is passing replyCount as a string instead
+  // of a number
+  var replyCount = props.replyCount|0;
+  if (replyCount === 0) {
+    return null;
+  }
+
+  var replyText = 'no-replies';
+  if (replyCount === 1) {
+    replyText = '1 reply';
+  } else {
+    replyText = replyCount + ' replies';
+  }
+  return <span class="annotation-collapsed-replies">
+    <a class="annotation-link" href=""
+      onClick={props.onClick}>{replyText}</a>
+  </span>
+}
+
 /**
  * Header for an annotation card displaying
  */
 function AnnotationHeader(props) {
-  var replyText = '';
-  if (props.replyCount === 1) {
-    replyText = '1 reply';
-  } else {
-    replyText = props.replyCount + ' replies';
-  }
-
   return <header class="annotation-header">
     {props.user ? <span>
       <UserLabel user={props.user}/>
-
-      <span class="annotation-collapsed-replies">
-        <a class="annotation-link" href=""
-          onClick={() => props.replyCountClick()}>{replyText}</a>
-      </span>
+      <ReplyCountLink replyCount={props.replyCount}
+                      onClick={props.replyCountClick}/>
 
       <br/>
 
@@ -278,10 +386,16 @@ var annotationActions = directive(AnnotationActions, {
   onDelete: '&',
 });
 
+var replyCountLink = directive(ReplyCountLink, {
+  onClick: '&',
+  replyCount: '=',
+});
+
 module.exports = {
   directive: directive,
   userLabel: userLabel,
   annotationDocumentInfo: annotationDocumentInfo,
   annotationHeader: annotationHeader,
   annotationActions: annotationActions,
+  replyCountLink: replyCountLink,
 };
