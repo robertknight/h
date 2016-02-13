@@ -116,9 +116,12 @@ module.exports = angular.module('h', [
 .directive('signinControl', require('./directive/signin-control'))
 .directive('sortDropdown', require('./directive/sort-dropdown'))
 .directive('topBar', require('./directive/top-bar'))
-.directive('annotationHeader', require('./directive/preact').annotationHeader)
-.directive('annotationActions', require('./directive/preact').annotationActions)
-.directive('replyCountLink', require('./directive/preact').replyCountLink)
+.directive('annotationHeader',
+  require('./directive/preact-annotation').annotationHeader)
+.directive('annotationActions',
+  require('./directive/preact-annotation').annotationActions)
+.directive('replyCountLink',
+  require('./directive/preact-annotation').replyCountLink)
 
 .filter('converter', require('./filter/converter'))
 .filter('persona', require('./filter/persona').filter)
