@@ -133,6 +133,7 @@ module.exports = angular.module('h', [
   .controller('WidgetController', require('./widget-controller'))
 
   .directive('annotation', require('./directive/annotation').directive)
+  .directive('annotationThread', require('./directive/annotation-thread'))
   .directive('deepCount', require('./directive/deep-count'))
   .directive('excerpt', require('./directive/excerpt').directive)
   .directive('formInput', require('./directive/form-input'))
@@ -173,6 +174,7 @@ module.exports = angular.module('h', [
   .service('permissions', require('./permissions'))
   .service('queryParser', require('./query-parser'))
   .service('render', require('./render'))
+  .service('rootThread', require('./root-thread'))
   .service('searchFilter', require('./search-filter'))
   .service('session', require('./session'))
   .service('streamFilter', require('./stream-filter'))

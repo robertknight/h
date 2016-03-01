@@ -31,9 +31,9 @@ function groupIDFromSelection(selection, results) {
 // @ngInject
 module.exports = function WidgetController(
   $scope, $rootScope, annotationUI, crossframe, annotationMapper,
-  drafts, groups, streamer, streamFilter, store, threading
+  drafts, groups, rootThread, streamer, streamFilter, store
 ) {
-  $scope.threadRoot = threading.root;
+
   $scope.sortOptions = ['Newest', 'Oldest', 'Location'];
 
   function focusAnnotation(annotation) {
@@ -43,6 +43,7 @@ module.exports = function WidgetController(
     }
     crossframe.call('focusAnnotations', highlights);
   }
+
 
   function scrollToAnnotation(annotation) {
     if (!annotation) {
@@ -66,14 +67,14 @@ module.exports = function WidgetController(
     }
   }
 
+  var searchClients = [];
+
   function _resetAnnotations() {
     // Unload all the annotations
-    annotationMapper.unloadAnnotations(threading.annotationList());
+    annotationMapper.unloadAnnotations(annotationUI.annotations);
     // Reload all the drafts
-    threading.thread(drafts.unsaved());
-  }
-
-  var searchClients = [];
+    annotationUI.addAnnotations(drafts.unsaved());
+  };
 
   function _loadAnnotationsFor(uri, group) {
     var searchClient = new SearchClient(store.SearchResource, {
@@ -193,6 +194,27 @@ module.exports = function WidgetController(
     return crossframe.frames;
   }, loadAnnotations);
 
+  // Watch the inputs that determine which annotations are currently
+  // visible and how they are sorted and rebuild the thread when they change
+  $scope.$watch('sort.name', function (mode) {
+    rootThread.sortBy(mode);
+  });
+  $scope.$watch('search.query', function (query) {
+    rootThread.setSearchQuery(query);
+  });
+
+  $scope.rootThread = function () {
+    return rootThread.thread();
+  };
+
+  $scope.toggleCollapsed = function (id) {
+    annotationUI.setCollapsed(id, annotationUI.expanded[id]);
+  };
+
+  $scope.forceVisible = function (id) {
+    annotationUI.setForceVisible(id, true);
+  };
+
   $scope.focus = focusAnnotation;
   $scope.scrollTo = scrollToAnnotation;
 
@@ -213,6 +235,6 @@ module.exports = function WidgetController(
     if (data.$highlight || (data.references && data.references.length > 0)) {
       return;
     }
-    return $scope.clearSelection();
+    $scope.clearSelection();
   });
 };
