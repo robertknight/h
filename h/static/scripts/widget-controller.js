@@ -7,19 +7,40 @@ var events = require('./events');
 // @ngInject
 module.exports = function WidgetController(
   $scope, $rootScope, annotationUI, crossframe, annotationMapper,
-  drafts, groups, streamer, streamFilter, store, threading
+  drafts, groups, rootThread, streamer, streamFilter, store
 ) {
-  $scope.threadRoot = threading.root;
+
   $scope.sortOptions = ['Newest', 'Oldest', 'Location'];
+
+  // Watch the inputs that determine which annotations are currently
+  // visible and how they are sorted and rebuild the thread when they change
+  $scope.$watch('sort.name', function (mode) {
+    rootThread.sortBy(mode);
+  });
+  $scope.$watch('search.query', function (query) {
+    rootThread.setSearchQuery(query);
+  });
+
+  $scope.rootThread = function () {
+    return rootThread.thread();
+  };
+
+  $scope.toggleCollapsed = function (id) {
+    annotationUI.setCollapsed(id, annotationUI.expanded[id]);
+  };
+
+  $scope.forceVisible = function (id) {
+    annotationUI.setForceVisible(id, true);
+  };
 
   var DEFAULT_CHUNK_SIZE = 200;
   var loaded = [];
 
   var _resetAnnotations = function () {
     // Unload all the annotations
-    annotationMapper.unloadAnnotations(threading.annotationList());
+    annotationMapper.unloadAnnotations(annotationUI.annotations);
     // Reload all the drafts
-    threading.thread(drafts.unsaved());
+    annotationUI.addAnnotations(drafts.unsaved());
   };
 
   var _loadAnnotationsFrom = function (query, offset) {
@@ -62,7 +83,7 @@ module.exports = function WidgetController(
   };
 
   $scope.$on(events.GROUP_FOCUSED, function () {
-    _resetAnnotations(annotationMapper, drafts, threading);
+    _resetAnnotations();
     loaded = [];
     return loadAnnotations(crossframe.frames);
   });
@@ -96,6 +117,6 @@ module.exports = function WidgetController(
     if (data.$highlight || (data.references && data.references.length > 0)) {
       return;
     }
-    return $scope.clearSelection();
+    $scope.clearSelection();
   });
 };

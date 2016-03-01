@@ -87,6 +87,7 @@ module.exports = class Threading
         parent.removeChild(container)
 
   beforeAnnotationCreated: (event, annotation) =>
+    console.log('threading new annotation', annotation)
     this.thread([annotation])
 
   annotationCreated: (event, annotation) =>

@@ -13,6 +13,7 @@ jinja_env = Environment(loader=PackageLoader(__package__, 'templates'))
 
 ANGULAR_DIRECTIVE_TEMPLATES = [
     'annotation',
+    'annotation_thread',
     'dropdown_menu_btn',
     'excerpt',
     'group_list',
