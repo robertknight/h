@@ -25,7 +25,6 @@ ANGULAR_DIRECTIVE_TEMPLATES = [
     'sidebar_tutorial',
     'signin_control',
     'sort_dropdown',
-    'thread',
     'top_bar',
     'viewer',
 ]
