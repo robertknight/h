@@ -1,23 +1,10 @@
-{module, inject} = angular.mock
+SearchFilter = require('../search-filter')
 
 describe 'searchFilter', ->
-  sandbox = null
   searchFilter = null
 
-  before ->
-    angular.module('h', [])
-    .service('searchFilter', require('../search-filter'))
-
-  beforeEach module('h')
-
   beforeEach ->
-    sandbox = sinon.sandbox.create()
-
-  beforeEach inject (_searchFilter_) ->
-    searchFilter = _searchFilter_
-
-  afterEach ->
-    sandbox.restore()
+    searchFilter = new SearchFilter()
 
   describe 'toObject', ->
     it 'puts a simple search string under the any filter', ->
@@ -63,3 +50,21 @@ describe 'searchFilter', ->
       assert.equal(result.any[1], 'john:doe')
       assert.equal(result.any[2], 'hi-fi')
       assert.equal(result.any[3], 'a:bc')
+
+  describe '#generateFacetedFilter', ->
+    it 'populates facets', ->
+      facets = ['quote','result','tag','text','uri','user']
+      for facet in facets
+        query = facet + ':sometoken'
+        filter = searchFilter.generateFacetedFilter(query)
+        assert.deepEqual(filter[facet], {
+          terms: ['sometoken'],
+          operator: filter[facet].operator,
+        })
+
+    it 'puts other terms in the "any" facet', ->
+      filter = searchFilter.generateFacetedFilter('foo bar')
+      assert.deepEqual(filter.any, {
+        terms: ['foo', 'bar'],
+        operator: 'and',
+      })
