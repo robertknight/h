@@ -1,11 +1,6 @@
-SearchFilter = require('../search-filter')
+searchFilter = require('../search-filter')
 
 describe 'searchFilter', ->
-  searchFilter = null
-
-  beforeEach ->
-    searchFilter = new SearchFilter()
-
   describe 'toObject', ->
     it 'puts a simple search string under the any filter', ->
       query = 'foo'

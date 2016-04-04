@@ -1,17 +1,25 @@
 'use strict';
 
-// Splits a search term into filter and data
-// i.e.
-//   'user:johndoe' -> ['user', 'johndoe']
-//   'example:text' -> [null, 'example:text']
+var FIELDS = ['group', 'quote', 'result', 'since', 'tag', 'text', 'uri',
+              'user'];
+
+/**
+ * Splits a search term into filter and data
+ * i.e.
+ *  'user:johndoe' -> ['user', 'johndoe']
+ *   'example:text' -> [null, 'example:text']
+ *
+ * @param {string} term
+ * @return {[string,string]} The [filter,data] pair
+ */
 function splitTerm(term) {
-  var filter = term.slice(0, term.indexOf(":"));
-  if (!(typeof filter !== "undefined" && filter !== null)) {
+  var filter = term.slice(0, term.indexOf(':'));
+  if (!filter) {
     // The whole term is data
     return [null, term];
   }
 
-  if (['group', 'quote', 'result', 'since', 'tag', 'text', 'uri', 'user'].indexOf(filter) >= 0) {
+  if (FIELDS.indexOf(filter) >= 0) {
     var data = term.slice(filter.length + 1);
     return [filter, data];
   } else {
@@ -20,11 +28,13 @@ function splitTerm(term) {
   }
 }
 
-// This function will slice the search-text input
-// Slice character: space,
-// but an expression between quotes (' or ") is considered one
-// I.e from the string: "text user:john 'to be or not to be' it will produce:
-// ["text", "user:john", "to be or not to be"]
+/**
+ * Split search text into whitespace separated terms, where quoted phrases
+ * are considered a single term.
+ *
+ * @param {string} searchtext
+ * @return {Array<string>} Parsed terms
+ */
 function tokenize(searchtext) {
   if (!searchtext) {
     return [];
@@ -62,7 +72,7 @@ function tokenize(searchtext) {
     var term = splitTerm(token);
     var filter = term[0];
     var data = term[1];
-    if ((typeof filter !== "undefined" && filter !== null)) {
+    if (filter) {
       tokens[index] = filter + ':' + (removeQuoteCharacter(data));
     }
   }
@@ -95,7 +105,7 @@ function toObject(searchtext) {
       var term = splitTerm(terms[i]);
       var filter = term[0];
       var data = term[1];
-      if (!(typeof filter !== "undefined" && filter !== null)) {
+      if (!filter) {
         filter = 'any';
         data = terms[i];
       }
@@ -106,21 +116,23 @@ function toObject(searchtext) {
   return obj;
 }
 
-// This function will generate the facets from the search-text input
-// It'll first tokenize it and then sorts them into facet lists
-// The output will be a dict with the following structure:
-// An object with facet_names as keys.
-// A value for a key:
-// [facet_name]:
-//   [operator]: 'and'|'or'|'min' (for the elements of the facet terms list)
-//   [lowercase]: true|false
-//   [terms]: an array for the matched terms for this facet
-// The facet selection is done by analyzing each token.
-// It generally expects a <facet_name>:<facet_term> structure for a token
-// Where the facet names are: 'quote', 'result', 'since', 'tag', 'text', 'uri', 'user
-// Anything that didn't match go to the 'any' facet
-// For the 'since' facet the the time string is scanned and is converted to seconds
-// So i.e the 'since:7min' token will be converted to 7*60 = 420 for the since facet value
+/**
+ * This function will generate the facets from the search-text input
+ * It'll first tokenize it and then sorts them into facet lists
+ * The output will be a dict with the following structure:
+ * An object with facet_names as keys.
+ * A value for a key:
+ * [facet_name]:
+ *  [operator]: 'and'|'or'|'min' (for the elements of the facet terms list)
+ *   [lowercase]: true|false
+ *   [terms]: an array for the matched terms for this facet
+ * The facet selection is done by analyzing each token.
+ * It generally expects a <facet_name>:<facet_term> structure for a token
+ * Where the facet names are: 'quote', 'result', 'since', 'tag', 'text', 'uri', 'user
+ * Anything that didn't match go to the 'any' facet
+ * For the 'since' facet the the time string is scanned and is converted to seconds
+ * So i.e the 'since:7min' token will be converted to 7*60 = 420 for the since facet value
+ */
 function generateFacetedFilter(searchtext) {
   var any = [];
   var quote = [];
@@ -136,7 +148,7 @@ function generateFacetedFilter(searchtext) {
     for (var i = 0, term; i < terms.length; i++) {
       term = terms[i];
       var filter = term.slice(0, term.indexOf(":"));
-      if (!(typeof filter !== "undefined" && filter !== null)) { filter = ""; }
+
       switch (filter) {
         case 'quote':
           quote.push(term.slice(6));
@@ -241,7 +253,7 @@ function generateFacetedFilter(searchtext) {
   };
 }
 
-module.exports = function SearchFilter() {
-  this.generateFacetedFilter = generateFacetedFilter;
-  this.toObject = toObject;
+module.exports = {
+  generateFacetedFilter: generateFacetedFilter,
+  toObject: toObject,
 };
