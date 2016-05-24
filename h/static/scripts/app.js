@@ -135,7 +135,7 @@ module.exports = angular.module('h', [
   .directive('annotationThread', require('./directive/annotation-thread'))
   .directive('dropdownMenuBtn', require('./directive/dropdown-menu-btn'))
   .directive('excerpt', require('./directive/excerpt').directive)
-  .directive('feedbackLink', require('./directive/feedback-link'))
+  .directive('feedbackLink', require('./directive/preact/feedback-link'))
   .directive('formInput', require('./directive/form-input'))
   .directive('formValidate', require('./directive/form-validate'))
   .directive('groupList', require('./directive/group-list').directive)
