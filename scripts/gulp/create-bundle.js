@@ -6,6 +6,7 @@
 var fs = require('fs');
 var path = require('path');
 
+var babelify = require('babelify');
 var browserify = require('browserify');
 var coffeeify = require('coffeeify');
 var exorcist = require('exorcist');
@@ -149,6 +150,14 @@ module.exports = function createBundle(config, buildOpts) {
   (config.transforms || []).forEach(function (transform) {
     if (transform === 'coffee') {
       bundle.transform(coffeeify);
+    } else if (transform === 'babel') {
+      bundle.transform(babelify.configure({
+        ignore: /vendor/,
+        presets: ['es2015'],
+        plugins: [
+          ['transform-react-jsx', { pragma: 'h' }]
+        ],
+      }));
     }
   });
 
@@ -162,6 +171,29 @@ module.exports = function createBundle(config, buildOpts) {
     b.on('error', function (err) {
       log('Build error', err.toString());
     });
+
+    // HACK: Override the 'browserify' key in package.json
+    // for node_modules/ packages which use Babelify
+    // to make them compatible with Babel v6, where ES2015
+    // transforms are not enabled by default.
+    //
+    // This effectively makes it behave as if the packages'
+    // package.json files contained:
+    //
+    //   browserify: {
+    //     transform: ["babelify", { "presets" : ["es2015"] }],
+    //   }
+    //
+    // Without this, Babel will not apply any transforms and
+    // ES2015 syntax will fail to compile.
+    //
+    bundle.pipeline.on('transform', function(transform, file) {
+      if (transform instanceof babelify && !transform._opts.presets) {
+        // patch the transform options before the transform runs
+        transform._opts.presets = ["es2015"];
+      }
+    });
+
     var stream = b.pipe(exorcist(sourcemapPath))
                   .pipe(output);
     return streamFinished(stream);

@@ -98,7 +98,7 @@ var appBundleBaseConfig = {
 var appBundles = [{
   // The sidebar application for displaying and editing annotations
   name: 'app',
-  transforms: ['coffee'],
+  transforms: ['coffee', 'babel'],
   entry: './h/static/scripts/app',
 },{
   // The Annotator library which provides annotation controls on
