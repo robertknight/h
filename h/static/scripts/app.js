@@ -34,10 +34,11 @@ var resolve = {
   sessionState: function (session) {
     return session.load();
   },
-  // @ngInject
-  store: function (store) {
+  // Note: Array syntax is used for Angular dependency injection below to
+  // work around an issue with Babel v6 renaming the function argument.
+  store: ['store', function (store) {
     return store.$promise;
-  },
+  }],
   streamer: streamer.connect,
 };
 
