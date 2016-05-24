@@ -143,7 +143,7 @@ module.exports = angular.module('h', [
   .directive('hTooltip', require('./directive/h-tooltip'))
   .directive('loggedoutMessage', require('./directive/loggedout-message'))
   .directive('loginForm', require('./directive/login-form').directive)
-  .directive('markdown', require('./directive/markdown'))
+  .directive('markdown', require('./directive/preact/markdown'))
   .directive('publishAnnotationBtn', require('./directive/publish-annotation-btn'))
   .directive('searchStatusBar', require('./directive/search-status-bar'))
   .directive('shareDialog', require('./directive/share-dialog'))
