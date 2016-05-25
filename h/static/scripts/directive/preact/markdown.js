@@ -129,6 +129,9 @@ function Toolbar(props) {
   </div>
 }
 
+// TODO:
+// - Keyboard shortcuts for bold, italic, underline toolbar actions
+// - Switch editor out of preview mode when exiting edit mode
 class MarkdownViewer extends Component {
   constructor() {
     super();
