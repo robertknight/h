@@ -82,26 +82,36 @@ function tokenize(searchtext) {
    .map(removeFieldValueQuotes);
 }
 
+function filterToBackendFilter(filter, value) {
+  if (filter === 'tag') {
+    return ['tags', value];
+  } else {
+    return [filter, value];
+  }
+}
+
 /**
  * Parse a search query string and return a mapping of fields to search terms.
  *
  * The resulting dictionary can be serialized as a query string and passed to
  * the Hypothesis search API.
+ *
+ * eg. toObject("user:jim term1 term2") =>
+ *       {user: ["jim"], any: ["term1", "term2"]}
+ *
+ * @param {string} searchtext - The query string
+ * @param {Function} mapTermFn - A function that takes (field, value) arguments
+ *        and returns a tuple of [translatedField, translatedValue]. This is used
+ *        to translate field names in the UI to those used by the API.
  */
-function toObject(searchtext) {
-  var filterToBackendFilter = function (filter) {
-    if (filter === 'tag') {
-      return 'tags';
-    } else {
-      return filter;
-    }
-  };
+function toObject(searchtext, mapTermFn) {
+  mapTermFn = mapTermFn || filterToBackendFilter;
 
   return tokenize(searchtext || '').reduce(function (map, term) {
     var parsedTerm = splitTerm(term);
-    var filter = filterToBackendFilter(parsedTerm[0]) || 'any';
-    map[filter] = map[filter] || [];
-    map[filter].push(parsedTerm[1]);
+    var mappedTerm = mapTermFn(parsedTerm[0] || 'any', parsedTerm[1]);
+    var filter = mappedTerm[0];
+    map[filter] = (map[filter] || []).concat(mappedTerm[1]);
     return map;
   }, {});
 }
@@ -146,85 +156,26 @@ function timeStringToSeconds(timeStr) {
  * So i.e the 'since:7min' token will be converted to 7*60 = 420 for the since facet value
  */
 function generateFacetedFilter(searchtext) {
-  var any = [];
-  var quote = [];
-  var result = [];
-  var since = [];
-  var tag = [];
-  var text = [];
-  var uri = [];
-  var user = [];
-
-  if (searchtext) {
-    var terms = tokenize(searchtext);
-    for (var i = 0, term; i < terms.length; i++) {
-      term = terms[i];
-      var filter = term.slice(0, term.indexOf(":"));
-
-      switch (filter) {
-        case 'quote':
-          quote.push(term.slice(6));
-          break;
-        case 'result':
-          result.push(term.slice(7));
-          break;
-        case 'since':
-         // We'll turn this into seconds
-         var time = term.slice(6).toLowerCase();
-         since.push(timeStringToSeconds(time));
-         break;
-        case 'tag':
-          tag.push(term.slice(4));
-          break;
-        case 'text':
-          text.push(term.slice(5));
-          break;
-        case 'uri':
-          uri.push(term.slice(4));
-          break;
-        case 'user':
-          user.push(term.slice(5));
-          break;
-        default:
-          any.push(term);
-      }
+  function translateFilter(filter, value) {
+    if (filter === 'since') {
+      return [filter, timeStringToSeconds(value)];
+    } else {
+      return [filter, value];
     }
   }
 
-  return {
-    any: {
-      terms: any,
-      operator: 'and'
-    },
-    quote: {
-      terms: quote,
-      operator: 'and'
-    },
-    result: {
-      terms: result,
-      operator: 'min'
-    },
-    since: {
-      terms: since,
-      operator: 'and'
-    },
-    tag: {
-      terms: tag,
-      operator: 'and'
-    },
-    text: {
-      terms: text,
-      operator: 'and'
-    },
-    uri: {
-      terms: uri,
-      operator: 'or'
-    },
-    user: {
-      terms: user,
-      operator: 'or'
-    }
-  };
+  // List of fields that are combined with an OR operator.
+  // All other fields are combined with an AND operator.
+  var orFields = ['uri', 'user'];
+  var parsedQuery = toObject(searchtext, translateFilter);
+
+  return Object.keys(parsedQuery).reduce(function (filter, field) {
+    filter[field] = {
+      terms: parsedQuery[field],
+      operator: orFields.indexOf(filter) !== -1 ? 'or' : 'and',
+    };
+    return filter;
+  }, {});
 }
 
 module.exports = {
