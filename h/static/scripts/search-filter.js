@@ -29,6 +29,41 @@ function splitTerm(term) {
 }
 
 /**
+ * Returns a copy of `text` with quote characters at the beginning and
+ * end removed.
+ *
+ * The quotes are only removed if they are both the same:
+ *   'foo' -> foo
+ *   "bar" -> bar
+ *   'foo" -> 'foo"
+ *   bar"  -> bar"
+ */
+function removeQuoteCharacter(text) {
+  var start = text.slice(0, 1);
+  var end = text.slice(-1);
+  if ((start === '"' || start === "'") && (start === end)) {
+    text = text.slice(1, text.length - 1);
+  }
+  return text;
+}
+
+/**
+ * Remove quotes from search terms with fields.
+ * I.e. 'tag:"foo bar"' -> 'tag:foo bar'
+ */
+function removeFieldValueQuotes(text) {
+  var term = splitTerm(text);
+  var filter = term[0];
+  var data = term[1];
+
+  if (filter) {
+    return filter + ':' + removeQuoteCharacter(data);
+  } else {
+    return text;
+  }
+}
+
+/**
  * Split search text into whitespace separated terms, where quoted phrases
  * are considered a single term.
  *
@@ -40,49 +75,20 @@ function tokenize(searchtext) {
     return [];
   }
 
-  // Small helper function for removing quote characters
-  // from the beginning- and end of a string, if the
-  // quote characters are the same.
-  // I.e.
-  //   'foo' -> foo
-  //   "bar" -> bar
-  //   'foo" -> 'foo"
-  //   bar"  -> bar"
-  var removeQuoteCharacter = function (text) {
-    var start = text.slice(0, 1);
-    var end = text.slice(-1);
-    if ((start === '"' || start === "'") && (start === end)) {
-      text = text.slice(1, text.length - 1);
-    }
-    return text;
-  };
-
   var tokens = searchtext.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g);
 
-  // Cut the opening and closing quote characters
-  tokens = tokens.map(removeQuoteCharacter);
-
-  // Remove quotes for power search.
-  // I.e. 'tag:"foo bar"' -> 'tag:foo bar'
-  var term;
-  var filter;
-  var data;
-  for (var index = 0, token; index < tokens.length; index++) {
-    token = tokens[index];
-    var term = splitTerm(token);
-    var filter = term[0];
-    var data = term[1];
-    if (filter) {
-      tokens[index] = filter + ':' + (removeQuoteCharacter(data));
-    }
-  }
-
-  return tokens;
+  return tokens
+   .map(removeQuoteCharacter)
+   .map(removeFieldValueQuotes);
 }
 
-// Turns string query into object, where the properties are the search terms
+/**
+ * Parse a search query string and return a mapping of fields to search terms.
+ *
+ * The resulting dictionary can be serialized as a query string and passed to
+ * the Hypothesis search API.
+ */
 function toObject(searchtext) {
-  var obj = {};
   var filterToBackendFilter = function (filter) {
     if (filter === 'tag') {
       return 'tags';
@@ -91,29 +97,13 @@ function toObject(searchtext) {
     }
   };
 
-  var addToObj = function (key, data) {
-    if ((obj[key] != null)) {
-      obj[key].push(data);
-    } else {
-      obj[key] = [data];
-    }
-  };
-
-  if (searchtext) {
-    var terms = tokenize(searchtext);
-    for (var i = 0, term; i < terms.length; i++) {
-      var term = splitTerm(terms[i]);
-      var filter = term[0];
-      var data = term[1];
-      if (!filter) {
-        filter = 'any';
-        data = terms[i];
-      }
-      addToObj(filterToBackendFilter(filter), data);
-    }
-  }
-
-  return obj;
+  return tokenize(searchtext || '').reduce(function (map, term) {
+    var parsedTerm = splitTerm(term);
+    var filter = filterToBackendFilter(parsedTerm[0]) || 'any';
+    map[filter] = map[filter] || [];
+    map[filter].push(parsedTerm[1]);
+    return map;
+  }, {});
 }
 
 /**
