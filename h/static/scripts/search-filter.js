@@ -106,6 +106,28 @@ function toObject(searchtext) {
   }, {});
 }
 
+var TIME_UNITS = {
+  sec: 1,
+  min: 60,
+  hour: 60 * 60,
+  day: 60 * 60 * 24,
+  week: 60 * 60 * 24 * 7,
+  month: 60 * 60 * 24 * 7,
+  year: 60 * 60 * 24 * 7 * 365,
+};
+
+function timeStringToSeconds(timeStr) {
+  for (var unit in TIME_UNITS) {
+    if (TIME_UNITS.hasOwnProperty(unit)) {
+      var match = timeStr.match('^(\\d+)' + unit + '$');
+      if (match) {
+        return parseFloat(match[1]) * TIME_UNITS[unit];
+      }
+    }
+  }
+  return timeStr;
+}
+
 /**
  * This function will generate the facets from the search-text input
  * It'll first tokenize it and then sorts them into facet lists
@@ -149,45 +171,7 @@ function generateFacetedFilter(searchtext) {
         case 'since':
          // We'll turn this into seconds
          var time = term.slice(6).toLowerCase();
-         if (time.match(/^\d+$/)) {
-           // Only digits, assuming seconds
-           since.push(time);
-         }
-         if (time.match(/^\d+sec$/)) {
-           // Time given in seconds
-           var t = /^(\d+)sec$/.exec(time)[1];
-           since.push(t);
-         }
-         if (time.match(/^\d+min$/)) {
-           // Time given in minutes
-           t = /^(\d+)min$/.exec(time)[1];
-           since.push(t * 60);
-         }
-         if (time.match(/^\d+hour$/)) {
-           // Time given in hours
-           t = /^(\d+)hour$/.exec(time)[1];
-           since.push(t * 60 * 60);
-         }
-         if (time.match(/^\d+day$/)) {
-           // Time given in days
-           t = /^(\d+)day$/.exec(time)[1];
-           since.push(t * 60 * 60 * 24);
-         }
-         if (time.match(/^\d+week$/)) {
-           // Time given in week
-           t = /^(\d+)week$/.exec(time)[1];
-           since.push(t * 60 * 60 * 24 * 7);
-         }
-         if (time.match(/^\d+month$/)) {
-           // Time given in month
-           t = /^(\d+)month$/.exec(time)[1];
-           since.push(t * 60 * 60 * 24 * 30);
-         }
-         if (time.match(/^\d+year$/)) {
-           // Time given in year
-           t = /^(\d+)year$/.exec(time)[1];
-           since.push(t * 60 * 60 * 24 * 365);
-         }
+         since.push(timeStringToSeconds(time));
          break;
         case 'tag':
           tag.push(term.slice(4));

@@ -1,6 +1,7 @@
 'use strict';
 
 var searchFilter = require('../search-filter');
+var unroll = require('./util').unroll;
 
 describe('searchFilter', function () {
   describe('toObject', function () {
@@ -75,5 +76,19 @@ describe('searchFilter', function () {
         operator: 'and',
       });
     });
+
+    unroll('parses units in "since" facet', function (testCase) {
+      var filter = searchFilter.generateFacetedFilter(testCase.query);
+      assert.deepEqual(filter.since.terms, [testCase.sinceTerm]);
+    },[{
+      query: 'since:7min',
+      sinceTerm: 7 * 60,
+    },{
+      query: 'since:3day',
+      sinceTerm: 3 * (60 * 60 * 24),
+    },{
+      query: 'since:2week',
+      sinceTerm: 2 * (60 * 60 * 24 * 7),
+    }]);
   });
 });
