@@ -57,7 +57,7 @@ function removeWrapper(node) {
 
 /**
  * Get the bounding client rectangle of a collection in viewport coordinates.
- * Unfortunately, Chrome has issues[1] with Range.getBoundingClient rect or we
+ * Unfortunately, Chrome has issues[1] with Range.getBoundingClientRect() or we
  * could just use that.
  * [1] https://code.google.com/p/chromium/issues/detail?id=324437
  */
