@@ -74,12 +74,9 @@ function forEachNodeInRange(range, callback) {
 }
 
 /**
- * Returns the bounding rectangles of non-whitespace text nodes in `range`.
- *
- * @param {Range} range
- * @return {Array<Rect>} Array of bounding rects in document coordinates.
+ * Returns an array of non-whitespace text nodes in `range`.
  */
-function getTextBoundingBoxes(range) {
+function getTextNodesInRange(range) {
   var whitespaceOnly = /^\s*$/;
   var textNodes = [];
   forEachNodeInRange(range, function (node) {
@@ -88,9 +85,18 @@ function getTextBoundingBoxes(range) {
       textNodes.push(node);
     }
   });
+  return textNodes;
+}
 
+/**
+ * Returns the bounding rectangles of non-whitespace text nodes in `range`.
+ *
+ * @param {Range} range
+ * @return {Array<Rect>} Array of bounding rects in document coordinates.
+ */
+function getTextBoundingBoxes(range) {
   var rects = [];
-  textNodes.forEach(function (node) {
+  getTextNodesInRange(range).forEach(function (node) {
     var nodeRange = node.ownerDocument.createRange();
     nodeRange.selectNodeContents(node);
     if (node === range.startContainer) {
@@ -141,6 +147,7 @@ function selectionFocusRect(selection) {
 }
 
 module.exports = {
+  getTextNodesInRange: getTextNodesInRange,
   isSelectionBackwards: isSelectionBackwards,
   selectionFocusRect: selectionFocusRect,
 };
