@@ -5,8 +5,6 @@ $ = Annotator.$
 
 scrollIntoView = require('scroll-into-view')
 
-highlighter = require('../highlighter')
-
 BUCKET_SIZE = 16                              # Regular bucket size
 BUCKET_NAV_SIZE = BUCKET_SIZE + 6             # Bucket plus arrow (up/down)
 BUCKET_TOP_THRESHOLD = 115 + BUCKET_NAV_SIZE  # Toolbar
@@ -16,11 +14,11 @@ BUCKET_TOP_THRESHOLD = 115 + BUCKET_NAV_SIZE  # Toolbar
 scrollToClosest = (anchors, direction) ->
   dir = if direction is "up" then +1 else -1
   {next} = anchors.reduce (acc, anchor) ->
-    unless anchor.highlights?.length
+    unless anchor.highlight
       return acc
 
     {start, next} = acc
-    rect = highlighter.getBoundingClientRect(anchor.highlights)
+    rect = anchor.highlight.getBoundingClientRect()
 
     # Ignore if it's not in the right direction.
     if (dir is 1 and rect.top >= BUCKET_TOP_THRESHOLD)
@@ -39,7 +37,7 @@ scrollToClosest = (anchors, direction) ->
         acc
   , {}
 
-  scrollIntoView(next.highlights[0])
+  scrollIntoView(next.highlight.node())
 
 
 module.exports = class BucketBar extends Annotator.Plugin
@@ -110,10 +108,10 @@ module.exports = class BucketBar extends Annotator.Plugin
 
     # Construct indicator points
     points = @annotator.anchors.reduce (points, anchor, i) =>
-      unless anchor.highlights?.length
+      unless anchor.highlight
         return points
 
-      rect = highlighter.getBoundingClientRect(anchor.highlights)
+      rect = anchor.highlight.getBoundingClientRect()
       x = rect.top
       h = rect.bottom - rect.top
 
