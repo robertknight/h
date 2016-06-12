@@ -107,7 +107,8 @@ var DEFAULT_OPTS = {
  */
 function Highlight(range, opts) {
   var self = this;
-  this._opts = Object.assign({}, DEFAULT_OPTS, opts);
+  opts = Object.assign({}, DEFAULT_OPTS, opts);
+  this._opts = opts;
   this._nodes = wrapTextInRange(range);
   this._nodes.forEach(function (node) {
     node.className = self._opts.className;
