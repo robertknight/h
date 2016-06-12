@@ -2,13 +2,17 @@
 
 // TODO: Testing notes and FIXME-s
 //
-// Issues:
+// Needs-a-test:
 // - On the https://hypothes.is/welcome page at least one highlight has no
-//   bounding rect resulting in the bucket bar failing to load
+//   bounding rect resulting in the bucket bar failing to load [NEEDSTEST]
+//
+// Issues:
 // - On the test server (http://localhost:3000) nested annotations are not highlighted
 //   in correct location when refreshing page (eg. highlight first sentence, then
 //   a phrase within that sentence and reload the page)
-// - Fix selection of multiple annotations at once with Ctrl/Meta still works
+// - Fix toggling of extension on then off then on again resulting in
+//   highlights that do nothing when clicked (tested with example.com)
+// - Fix selection of multiple annotations at once with Ctrl/Meta
 //
 // Other cases to test:
 // - Orphaned annotations
