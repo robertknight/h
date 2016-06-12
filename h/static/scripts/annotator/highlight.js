@@ -55,6 +55,27 @@ function removeWrapper(node) {
   parent.normalize();
 }
 
+/**
+ * Get the bounding client rectangle of a collection in viewport coordinates.
+ * Unfortunately, Chrome has issues[1] with Range.getBoundingClient rect or we
+ * could just use that.
+ * [1] https://code.google.com/p/chromium/issues/detail?id=324437
+ */
+function nodeListBoundingBox(nodes) {
+  return Array.from(nodes).reduce(function (acc, n) {
+    var r = n.getBoundingClientRect();
+    if (!acc) {
+      return {top: r.top, left: r.left, bottom: r.bottom, right: r.right};
+    }
+    return {
+      top: Math.min(acc.top, r.top),
+      left: Math.min(acc.left, r.left),
+      bottom: Math.max(acc.bottom, r.bottom),
+      right: Math.max(acc.right, r.right),
+    };
+  }, null);
+}
+
 var DEFAULT_OPTS = {
   className: 'highlight',
 };
@@ -117,6 +138,11 @@ Highlight.prototype.isEmpty = function () {
 /** Remove the highlight from the document */
 Highlight.prototype.remove = function () {
   this._nodes.forEach(removeWrapper);
+};
+
+/** Return the bounding box for the highlight in client coordinates. */
+Highlight.prototype.getBoundingClientRect = function () {
+  return nodeListBoundingBox(this._nodes);
 };
 
 module.exports = Highlight;

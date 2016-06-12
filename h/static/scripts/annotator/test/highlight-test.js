@@ -145,4 +145,21 @@ describe('highlight', function () {
       });
     });
   });
+
+  describe('#getBoundingClientRect', function () {
+    it('returns the bounding rect of all highlight spans', function () {
+      highlightTest('This is<br>some text', 'is some', {}, function (el, hl) {
+        var hlSpans = el.querySelectorAll('.highlight');
+        var firstHl = hlSpans[0].getBoundingClientRect();
+        var secondHl = hlSpans[1].getBoundingClientRect();
+        var rect = hl.getBoundingClientRect();
+        assert.deepEqual(rect, {
+          left: Math.min(firstHl.left, secondHl.left),
+          top: firstHl.top,
+          right: Math.max(firstHl.right, secondHl.right),
+          bottom: secondHl.bottom,
+        });
+      });
+    });
+  });
 });
