@@ -59,6 +59,27 @@ describe('highlight', function () {
         assert.equal(el.innerHTML, 'This is <span class="annotator-hl">some</span> text');
       });
     });
+
+    it('wraps text when there are nested highlights', function () {
+      var el = fromHTML('This is a sentence with multiple highlights');
+      document.body.appendChild(el);
+
+      // Note that findText() here implicitly mutates the DOM structure by
+      // splitting text nodes. This mirrors what happens when anchoring nested
+      // annotations
+      var r1 = findText(el, 'sentence with multiple');
+      var r2 = findText(el, 'sentence with');
+
+      var hl1 = new Highlight(r1);
+      var hl2 = new Highlight(r2);
+
+      assert.equal(el.innerHTML, 'This is a <span class="highlight">' +
+        '<span class="highlight">sentence with</span> multiple</span> highlights');
+
+      hl1.remove();
+      hl2.remove();
+      el.parentNode.removeChild(el);
+    });
   });
 
   describe('event handling', function () {
