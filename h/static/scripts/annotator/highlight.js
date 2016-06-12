@@ -1,5 +1,20 @@
 'use strict';
 
+// TODO: Testing notes and FIXME-s
+//
+// Issues:
+// - On the https://hypothes.is/welcome page at least one highlight has no
+//   bounding rect resulting in the bucket bar failing to load
+// - On the test server (http://localhost:3000) nested annotations are not highlighted
+//   in correct location when refreshing page (eg. highlight first sentence, then
+//   a phrase within that sentence and reload the page)
+// - Fix selection of multiple annotations at once with Ctrl/Meta still works
+//
+// Other cases to test:
+// - Orphaned annotations
+// - PDFs
+// - Selection of recently annotated pages from stream
+
 var rangeUtil = require('./range-util');
 
 /**
