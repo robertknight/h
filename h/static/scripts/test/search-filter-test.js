@@ -42,9 +42,9 @@ describe('searchFilter', function () {
     it('collects valid filters and puts invalid into the any category', function () {
       var query = 'uri:test foo:bar text:hey john:doe quote:according hi-fi a:bc';
       var result = searchFilter.toObject(query);
-      assert.isFalse((result.foo != null));
-      assert.isFalse((result.john != null));
-      assert.isFalse((result.a != null));
+      assert.equal(result.foo, undefined);
+      assert.equal(result.john, undefined);
+      assert.equal(result.a, undefined);
       assert.equal(result.uri[0], 'test');
       assert.equal(result.text[0], 'hey');
       assert.equal(result.quote[0], 'according');
