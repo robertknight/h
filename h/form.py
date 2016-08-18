@@ -7,6 +7,7 @@ form templates in preference to the defaults. Uses `deform_jinja2` to provide
 the fallback templates in Jinja2 format, which we can then extend and modify as
 necessary.
 """
+import colander
 import deform
 import jinja2
 from pyramid import httpexceptions
@@ -73,6 +74,58 @@ def create_environment(base):
     return base.overlay(autoescape=True, loader=loader)
 
 
+def field_data(field):
+    error_messages = []
+    if field.error:
+        error_messages = field.error.messages()
+
+    field_value = None
+    if field.cstruct != colander.null:
+        field_value = field.cstruct
+
+    return {
+        'autofocus': getattr(field.widget, 'autofocus', None),
+        'description': field.description,
+        'disableAutocomplete': getattr(field.widget, 'disable_autocomplete', None),
+        'errors': error_messages,
+        'hint': getattr(field.schema, 'hint', None),
+        'maxLength': getattr(field.widget, 'max_length', None),
+        'name': field.name,
+        'oid': field.oid,
+        'placeholder': getattr(field.widget, 'placeholder', None),
+        'required': field.required,
+        'title': field.title,
+        'type': field.widget.template,
+        'value': field_value,
+    }
+
+
+def form_data(form):
+    """
+    Return a JSON-serializable dict of a form's fields and properties.
+
+    Returns a dict of a form's fields and properties suitable for serialization
+    as an HTML payload.
+    """
+    buttons = []
+    for button in form.buttons:
+        buttons.append({
+            'name': button.name,
+            'type': button.type,
+            'title': button.title,
+            'value': button.value,
+        })
+
+    return {
+        'action': form.action,
+        'buttons': buttons,
+        'fields': [field_data(field) for field in form.children],
+        'footer': getattr(form, 'footer', None),
+        'formid': form.formid,
+        'method': form.method,
+    }
+
+
 def create_form(request, *args, **kwargs):
     """
     Create a :py:class:`deform.Form` instance for this request.
@@ -83,6 +136,7 @@ def create_form(request, *args, **kwargs):
     env = request.registry[ENVIRONMENT_KEY]
     renderer = Jinja2Renderer(env, {
         'feature': request.feature,
+        'form_data': form_data,
     })
     kwargs.setdefault('renderer', renderer)
 
@@ -95,7 +149,7 @@ def configure_environment(config):  # pragma: no cover
     config.registry[ENVIRONMENT_KEY] = create_environment(base)
 
 
-def handle_form_submission(request, form, on_success, on_failure):
+def handle_form_submission(request, form, on_success, on_failure, **kwargs):
     """
     Handle the submission of the given form in a standard way.
 
@@ -137,10 +191,10 @@ def handle_form_submission(request, form, on_success, on_failure):
         request.session.flash(_("Success. We've saved your changes."),
                               'success')
 
-    return to_xhr_response(request, result, form)
+    return to_xhr_response(request, result, form, **kwargs)
 
 
-def to_xhr_response(request, non_xhr_result, form):
+def to_xhr_response(request, non_xhr_result, form, **kwargs):
     """
     Return an XHR response for the given ``form``, or ``non_xhr_result``.
 
@@ -164,8 +218,8 @@ def to_xhr_response(request, non_xhr_result, form):
     if not request.is_xhr:
         return non_xhr_result
 
-    request.override_renderer = 'string'
-    return form.render()
+    request.override_renderer = 'json'
+    return form_data(form)
 
 
 def includeme(config):  # pragma: no cover

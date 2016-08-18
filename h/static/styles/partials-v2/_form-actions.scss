@@ -5,11 +5,13 @@
 // on a login form).
 
 .form-actions {
-  margin-top: 20px;
+  margin-top: 5px;
+  margin-bottom: 15px;
 
   display: flex;
   flex-direction: row-reverse;
   align-items: center;
+  z-index: $zindex-modal-content;
 }
 
 .form-actions__message {
@@ -17,4 +19,16 @@
 
   color: $grey-4;
   padding-left: 15px;
+}
+
+.form-actions__buttons {
+  z-index: $zindex-modal-content;
+}
+
+.form-actions__btn {
+  margin-right: 10px;
+}
+
+.form-actions__buttons.is-saving  .form-actions__btn {
+  opacity: .5;
 }

@@ -5,14 +5,21 @@
 {% set form_buttons_class = 'form-actions-buttons' %}
 {% set form_message_class = 'form-actions-message' %}
 {% endif %}
+{% if inline_editing %}
+{% set controller_class = 'js-form' %}
+{% set form_json = form_data(field) | to_json %}
+{% endif %}
 
 <form id="{{ field.formid }}"
       action="{{ field.action }}"
       method="{{ field.method }}"
       enctype="multipart/form-data"
       accept-charset="utf-8"
-      class="form {% if field.css_class %}{{ field.css_class }} {% endif %}">
+      class="form {{ field.css_class or '' }} {{ controller_class }}"
+      data-props='{{ form_json }}'>
   <input type="hidden" name="__formid__" value="{{ field.formid }}" />
+
+  <div class="form__backdrop" data-ref="formBackdrop"></div>
 
   {%- for f in field.children -%}
     {{ field.renderer(field.widget.item_template, field=f, cstruct=cstruct.get(f.name, null)) }}
@@ -25,22 +32,28 @@
     {% if feature('activity_pages') %}
     <div class="u-stretch"></div>
     {% endif %}
-    <div class="{{ form_buttons_class }}">
+    <div class="{{ form_buttons_class }}" data-ref="formButtons">
       {%- for button in field.buttons -%}
         <button id="{{ field.formid + button.name }}"
                 name="{{ button.name }}"
                 type="{{ button.type }}"
-                class="btn{% if button.css_class %} {{ button.css_class }}{% endif %}"
+                class="form-actions__btn btn{% if button.css_class %} {{ button.css_class }}{% endif %}"
                 value="{{ _(button.value) }}"
+                data-ref="formBtn"
                 {%- if button.disabled -%}
                 disabled="disabled"
                 {% endif -%}
                 >
         {{ _(button.title) }}
         </button>
+        <button class="btn btn--cancel is-hidden" data-ref="cancelBtn">Cancel</button>
       {% endfor -%}
     </div>
   </div>
+
+  <template data-ref="hintIcon">
+    {{ svg_icon('info_icon') }}
+  </template>
 
   {#
     The default deform templates are ajax capable. I've removed that code here
