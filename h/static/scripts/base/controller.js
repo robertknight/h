@@ -7,13 +7,12 @@
  * Multiple controllers may need to refer to the same element, so `data-ref`
  * supports a space-separated list of reference names.
  */
-function findRefs(el, map) {
-  if (!el.dataset) {
-    return map;
-  }
-  map = map || {};
+function findRefs(el) {
+  var map = {};
 
-  var refs = (el.dataset.ref || '').split(' ');
+  // Use `Element#getAttribute` rather than `Element#dataset` to support IE 10
+  // and avoid https://bugs.webkit.org/show_bug.cgi?id=161454
+  var refs = (el.getAttribute('data-ref') || '').split(' ');
   refs.forEach(function (ref) {
     map[ref] = el;
   });
@@ -21,7 +20,7 @@ function findRefs(el, map) {
   for (var i=0; i < el.children.length; i++) {
     var node = el.children[i];
     if (node.nodeType === Node.ELEMENT_NODE) {
-      findRefs(node, map);
+      Object.assign(map, findRefs(node));
     }
   }
 
