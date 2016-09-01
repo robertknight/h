@@ -17,8 +17,10 @@ function findRefs(el) {
     map[ref] = el;
   });
 
-  for (var i=0; i < el.children.length; i++) {
-    var node = el.children[i];
+  // Use `Node#childNodes` rather than `ParentNode#children` because
+  // IE lacks support for `#children` on <svg> elements
+  for (var i=0; i < el.childNodes.length; i++) {
+    var node = el.childNodes[i];
     if (node.nodeType === Node.ELEMENT_NODE) {
       Object.assign(map, findRefs(node));
     }
