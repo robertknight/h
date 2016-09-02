@@ -1,6 +1,18 @@
 'use strict';
 
 /**
+ * Mark an element as having been upgraded.
+ */
+function markReady(element) {
+  var HIDE_CLASS = 'u-js-hide-when-loading';
+  var hideOnLoad = Array.from(element.querySelectorAll('.' + HIDE_CLASS));
+  hideOnLoad.forEach(function (el) {
+    el.classList.remove(HIDE_CLASS);
+  });
+  element.classList.remove(HIDE_CLASS);
+}
+
+/**
  * Upgrade elements on the page with additional functionality
  *
  * `upgradeElements()` provides a hook to test a page without JS enhancements.
@@ -35,7 +47,8 @@ function upgradeElements(root, controllers) {
     elements.forEach(function (el) {
       var ControllerClass = controllers[selector];
       try {
-        new ControllerClass(el, {reload: reload});
+        new ControllerClass(el, {reload});
+        markReady(el);
       } catch (err) {
         console.error('Failed to upgrade element %s with controller', el, ControllerClass, ':', err.toString());
 

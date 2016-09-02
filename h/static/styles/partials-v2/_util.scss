@@ -5,3 +5,11 @@
 .u-stretch {
   flex-grow: 1;
 }
+
+// Utility class that hides an element during initial page load until its
+// containing element is upgraded, or JS load times out.
+@include js {
+  .u-js-hide-when-loading {
+    display: none !important;
+  }
+}
