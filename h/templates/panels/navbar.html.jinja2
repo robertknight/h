@@ -1,5 +1,16 @@
 {% from '../includes/dropdown_menu.html.jinja2' import dropdown_menu %}
 
+{% macro search_bar_dropdown_item(facet, label) %}
+<li class="search-bar__dropdown-menu-item" data-ref="searchBarDropdownItem">
+  <span class="search-bar__dropdown-menu-title" data-ref="searchBarDropdownItemTitle">
+    {{facet}}
+  </span>
+  <span class="search-bar__dropdown-menu-explanation">
+    {{label}}
+  </span>
+</li>
+{% endmacro %}
+
 {# Dropdown displaying search facet options. #}
 {% macro search_bar_dropdown() %}
 <div class="search-bar__dropdown-menu-container" data-ref="searchBarDropdown">
@@ -7,38 +18,10 @@
     Narrow your search
   </h4>
   <ul class="search-bar__dropdown-menu">
-    <li class="search-bar__dropdown-menu-item" data-ref="searchBarDropdownItem">
-      <span class="search-bar__dropdown-menu-title" data-ref="searchBarDropdownItemTitle">
-        user:
-      </span>
-      <span class="search-bar__dropdown-menu-explanation">
-        search by username
-      </span>
-    </li>
-    <li class="search-bar__dropdown-menu-item" data-ref="searchBarDropdownItem">
-      <span class="search-bar__dropdown-menu-title" data-ref="searchBarDropdownItemTitle">
-        tag:
-      </span>
-      <span class="search-bar__dropdown-menu-explanation">
-        search for annotations with a tag
-      </span>
-    </li>
-    <li class="search-bar__dropdown-menu-item" data-ref="searchBarDropdownItem">
-      <span class="search-bar__dropdown-menu-title" data-ref="searchBarDropdownItemTitle">
-        url:
-      </span>
-      <span class="search-bar__dropdown-menu-explanation">
-        see all annotations on a page
-      </span>
-    </li>
-    <li class="search-bar__dropdown-menu-item" data-ref="searchBarDropdownItem">
-      <span class="search-bar__dropdown-menu-title" data-ref="searchBarDropdownItemTitle">
-        group:
-      </span>
-      <span class="search-bar__dropdown-menu-explanation">
-        show annotations created in a group you are a member of
-      </span>
-    </li>
+    {{ search_bar_dropdown_item('user:', 'search by username') }}
+    {{ search_bar_dropdown_item('tag:', 'search for annotations with a tag') }}
+    {{ search_bar_dropdown_item('url:', 'see all annotations on a page') }}
+    {{ search_bar_dropdown_item('group:', 'show annotations created in a group you are a member of') }}
   </ul>
 </div>
 {% endmacro %}
