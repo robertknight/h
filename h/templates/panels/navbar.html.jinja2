@@ -1,8 +1,8 @@
 {% from '../includes/dropdown_menu.html.jinja2' import dropdown_menu %}
 
 {% macro search_bar_dropdown_item(facet, label) %}
-<li class="search-bar__dropdown-menu-item" data-ref="searchBarDropdownItem">
-  <span class="search-bar__dropdown-menu-title" data-ref="searchBarDropdownItemTitle">
+<li class="search-bar__dropdown-menu-item js-search-bar-dropdown-item">
+  <span class="search-bar__dropdown-menu-title" data-ref="title">
     {{facet}}
   </span>
   <span class="search-bar__dropdown-menu-explanation">

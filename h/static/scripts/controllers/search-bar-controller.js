@@ -2,6 +2,59 @@
 
 var Controller = require('../base/controller');
 var setElementState = require('../util/dom').setElementState;
+var upgradeElements = require('../base/upgrade-elements');
+
+/**
+ * Returns the item before `current` in `items`.
+ *
+ * Wraps around to the end of the list if `current` is the first item.
+ */
+function prevItem(items, current) {
+  var idx = items.indexOf(current);
+  if (idx === -1) {
+    return items[0];
+  } else if (idx === 0) {
+    return items[items.length-1];
+  } else {
+    return items[idx-1];
+  }
+}
+
+/**
+ * Returns the item after `current` in `items`.
+ *
+ * Wraps around to the start of the list if `current` is the first item.
+ */
+function nextItem(items, current) {
+  var idx = items.indexOf(current);
+  if (idx === -1) {
+    return items[0];
+  } else if (idx === items.length - 1) {
+    return items[0];
+  } else {
+    return items[idx+1];
+  }
+}
+
+/**
+ * Controller for items within the dropdown list
+ */
+class SearchBarDropdownItemController extends Controller {
+  constructor(element) {
+    super(element);
+
+    this.on('click', () => this.trigger('search-bar-dropdown:select'));
+    this.on('mouseover', () => this.trigger('search-bar-dropdown:focus'));
+  }
+
+  facet() {
+    return this.refs.title.textContent.trim();
+  }
+
+  update(state) {
+    setElementState(this.element, {active: state.active});
+  }
+}
 
 /**
  * Controller for the search bar.
@@ -10,25 +63,26 @@ class SearchBarController extends Controller {
   constructor(element) {
     super(element);
 
+    upgradeElements(element, {
+      '.js-search-bar-dropdown-item': SearchBarDropdownItemController,
+    });
+
     this._input = this.refs.searchBarInput;
     this._dropdown = this.refs.searchBarDropdown;
-    this._dropdownItems = Array.from(
-      element.querySelectorAll('[data-ref="searchBarDropdownItem"]'));
+    this._dropdownItems = this.childControllers(SearchBarDropdownItemController);
 
-    var getActiveDropdownItem = () => {
-      return element.querySelector('.js-search-bar-dropdown-menu-item--active');
+    var closeDropdown = () => {
+      this.setState({
+        activeDropdownItem: null,
+        open: false,
+      });
     };
 
-    var clearActiveDropdownItem = () => {
-      var activeItem = getActiveDropdownItem();
-      if (activeItem) {
-        activeItem.classList.remove('js-search-bar-dropdown-menu-item--active');
-      }
-    };
-
-    var updateActiveDropdownItem = element => {
-      clearActiveDropdownItem();
-      element.classList.add('js-search-bar-dropdown-menu-item--active');
+    var openDropdown = () => {
+      this.setState({
+        activeDropdownItem: this._dropdownItems[0],
+        open: true,
+      });
     };
 
     var selectFacet = facet => {
@@ -36,98 +90,40 @@ class SearchBarController extends Controller {
 
       closeDropdown();
 
-      setTimeout(function() {
+      setTimeout(() => {
         this._input.focus();
-      }.bind(this), 0);
+      }, 0);
     };
 
-    var getPreviousSiblingElement = element => {
-      if (!element) {
-        return null;
-      }
-
-      do {
-        element = element.previousSibling;
-      } while (element && element.nodeType != 1);
-
-      return element;
-    };
-
-    var getNextSiblingElement = element => {
-      if (!element) {
-        return null;
-      }
-
-      do {
-        element = element.nextSibling;
-      } while (element && element.nodeType != 1);
-
-      return element;
-    };
-
-    var closeDropdown = () => {
-      clearActiveDropdownItem();
-      this.setState({open: false});
-      this._input.removeEventListener('keydown', setupListenerKeys,
-        true /*capture*/);
-    };
-
-    var openDropdown = () => {
-      this.setState({open: true});
-      this._input.addEventListener('keydown', setupListenerKeys,
-        true /*capture*/);
-    };
-
-    var setupListenerKeys = event => {
+    var onKeyPress = event => {
       const ENTER_KEY_CODE = 13;
       const UP_ARROW_KEY_CODE = 38;
       const DOWN_ARROW_KEY_CODE = 40;
 
-      var activeItem = getActiveDropdownItem();
-      var handlers = {};
-
-      var handleEnterKey = event => {
+      switch (event.keyCode) {
+      case ENTER_KEY_CODE:
         event.preventDefault();
-
-        if (activeItem) {
-          var facet =
-            activeItem.
-              querySelector('[data-ref="searchBarDropdownItemTitle"]').
-              innerHTML.trim();
-          selectFacet(facet);
+        if (this.state.activeDropdownItem) {
+          selectFacet(this.state.activeDropdownItem.facet());
         }
-      };
-
-      var handleUpArrowKey = event => {
-        updateActiveDropdownItem(getPreviousSiblingElement(activeItem) ||
-          this._dropdownItems[this._dropdownItems.length - 1]);
-      };
-
-      var handleDownArrowKey = event => {
-        updateActiveDropdownItem(getNextSiblingElement(activeItem) ||
-          this._dropdownItems[0]);
-      };
-
-      handlers[ENTER_KEY_CODE] = handleEnterKey;
-      handlers[UP_ARROW_KEY_CODE] = handleUpArrowKey;
-      handlers[DOWN_ARROW_KEY_CODE] = handleDownArrowKey;
-
-      var handler = handlers[event.keyCode];
-      if (handler) {
-        handler(event);
+        break;
+      case UP_ARROW_KEY_CODE:
+        this.setState({
+          activeDropdownItem: prevItem(this._dropdownItems,
+            this.state.activeDropdownItem),
+        });
+        break;
+      case DOWN_ARROW_KEY_CODE:
+        this.setState({
+          activeDropdownItem: nextItem(this._dropdownItems,
+            this.state.activeDropdownItem),
+        });
+        break;
       }
     };
 
     var handleClickOnItem = event => {
-      var facet =
-        event.currentTarget.
-          querySelector('[data-ref="searchBarDropdownItemTitle"]').
-          innerHTML.trim();
-      selectFacet(facet);
-    };
-
-    var handleHoverOnItem = event => {
-      updateActiveDropdownItem(event.currentTarget);
+      selectFacet(event.controller.facet());
     };
 
     var handleClickOnDropdown = event => {
@@ -139,9 +135,8 @@ class SearchBarController extends Controller {
     var handleFocusOutside = event => {
       if (!element.contains(event.target) ||
         !element.contains(event.relatedTarget)) {
-        this.setState({open: false});
+        closeDropdown();
       }
-      closeDropdown();
     };
 
     var handleFocusOnInput = () => {
@@ -152,28 +147,33 @@ class SearchBarController extends Controller {
       }
     };
 
-    Object.keys(this._dropdownItems).forEach(function(key) {
-      var item = this._dropdownItems[key];
-      if(item && item.addEventListener) {
-        item.addEventListener('mouseover', handleHoverOnItem,
-          true);
-        item.addEventListener('mousedown', handleClickOnItem,
-          true);
-      }
-    }.bind(this));
+    this.on('keypress', onKeyPress);
+
+    this.on('search-bar-dropdown:focus', event => {
+      this.setState({activeDropdownItem: event.controller});
+    });
+    this.on('search-bar-dropdown:select', handleClickOnItem);
 
     this._dropdown.addEventListener('mousedown', handleClickOnDropdown,
       true /*capture*/);
-    this._input.addEventListener('focusout', handleFocusOutside,
+    this._input.addEventListener('blur', handleFocusOutside,
       true /*capture*/);
     this._input.addEventListener('input', handleFocusOnInput,
       true /*capture*/);
-    this._input.addEventListener('focusin', handleFocusOnInput,
+    this._input.addEventListener('focus', handleFocusOnInput,
       true /*capture*/);
+
+    this.setState({
+      activeDropdownItem: null,
+      open: false,
+    });
   }
 
   update(state) {
     setElementState(this._dropdown, {open: state.open});
+    this._dropdownItems.forEach(item => {
+      item.setState({active: item === state.activeDropdownItem});
+    });
   }
 }
 
