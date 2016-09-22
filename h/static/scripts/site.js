@@ -13,10 +13,11 @@ var CreateGroupFormController = require('./controllers/create-group-form-control
 var DropdownMenuController = require('./controllers/dropdown-menu-controller');
 var FormController = require('./controllers/form-controller');
 var FormSelectOnFocusController = require('./controllers/form-select-onfocus-controller');
-var SearchBarController = require('./controllers/search-bar-controller');
+var SearchBarController = require('./controllers/search-bar-controller-v2');
 var SearchBucketController = require('./controllers/search-bucket-controller');
 var SignupFormController = require('./controllers/signup-form-controller');
 var TooltipController = require('./controllers/tooltip-controller');
+
 var upgradeElements = require('./base/upgrade-elements');
 
 var controllers = {
