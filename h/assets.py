@@ -118,30 +118,38 @@ def _load_bundles(fp):
     parser.readfp(fp)
     return {k: aslist(v) for k, v in parser.items('bundles')}
 
-# Site assets
-assets_view = static_view('h:../build',
-                          cache_max_age=None,
-                          use_subpath=True)
-assets_view = _add_cors_header(assets_view)
 
+def create_assets_view(assets_env, file_path):
+    """
+    Return a view callable for serving static assets.
 
-# Client assets
-assets_client_view = static_view('h:../node_modules/hypothesis/build',
-                                 cache_max_age=None,
-                                 use_subpath=True)
-assets_client_view = _add_cors_header(assets_client_view)
+    :param assets_env: Environment describing available assets
+    :type assets_env: Environment
+    :param file_path: Path of directory containing assets
+    """
+    assets_view = static_view(file_path,
+                              cache_max_age=None,
+                              use_subpath=True)
+    assets_view = _add_cors_header(assets_view)
+    return assets_view
 
 
 def includeme(config):
-    config.add_view(route_name='assets', view=assets_view)
-    config.add_view(route_name='assets_client', view=assets_client_view)
-
+    # Site assets
     assets_env = Environment('/assets',
                              'h/assets.ini',
                              'build/manifest.json')
+    assets_view = create_assets_view(assets_env, 'h:../build')
+
+    # Client assets
     assets_client_env = Environment('/assets/client',
                                     'h/assets_client.ini',
                                     'node_modules/hypothesis/build/manifest.json')
+    assets_client_view = create_assets_view(assets_client_env,
+                                            'h:../node_modules/hypothesis/build')
+
+    config.add_view(route_name='assets', view=assets_view)
+    config.add_view(route_name='assets_client', view=assets_client_view)
 
     # We store the environment objects on the registry so that the Jinja2
     # integration can be configured in app.py
