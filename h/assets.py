@@ -3,6 +3,8 @@ import os
 
 import json
 from pyramid.httpexceptions import HTTPNotFound
+from pyramid.response import FileResponse
+from pyramid.path import AssetResolver
 from pyramid.settings import aslist
 from pyramid.static import static_view
 
@@ -93,64 +95,33 @@ class Environment(object):
             return '{}/{}'.format(self.assets_base_url, manifest[path])
         return [asset_url(path) for path in bundles[bundle]]
 
-    def version(self, path):
+    def path_for_url(self, url):
         """
-        Return the current version of the asset with a given `path`.
+        Return the on-disk path of the file served at the given `url_path`.
+
+        The returned path is relative to the root directory from which assets
+        are served.
 
         Returns `None` if no such asset exists.
         """
-        try:
-            # Asset URLs in the bundle are in the form '<path>?<version>'
-            manifest = self.manifest.load()
-            [_, version] = manifest[path].split('?')
-            return version
-        except KeyError:
-            return None
+        manifest = self.manifest.load()
 
+        for (item_path, item_url) in manifest.items():
+            item_url = '{}/{}'.format(self.assets_base_url, item_url)
+            if item_url == url:
+                return item_path
+        return None
 
-def _check_version(env, wrapped):
-    """
-    View callable decorator which checks the requested version of a static asset.
+    def url_for_path(self, path):
+        """
+        Return the cache-busted URL for an asset with a given path.
+        """
+        manifest = self.manifest.load()
 
-    This checks the asset version specified in the query string against the
-    available version specified in the JSON manifest. If the two versions do not
-    match, the request is failed with a 404 response.
-    """
-    def wrapper(context, request):
-        requested_version = request.query_string
-
-        if requested_version:
-            asset_path = request.path[len(env.assets_base_url)+1:]
-            expected_version = env.version(asset_path)
-
-            if requested_version != expected_version:
-                return HTTPNotFound('Asset version not available.')
-
-        return wrapped(context, request)
-
-    return wrapper
-
-
-def _add_cors_header(wrapped):
-    """
-    View callable decorator which adds CORS headers to the request.
-    """
-    def wrapper(context, request):
-        # Add a CORS header to the response because static assets from
-        # the sidebar are loaded into pages served by a different origin:
-        # The domain hosting the page into which the sidebar has been injected
-        # or embedded.
-        #
-        # Some browsers enforce cross-origin restrictions on certain types of
-        # resources, eg. Firefox enforces same-domain policy for @font-face
-        # unless a CORS header is provided.
-        response = wrapped(context, request)
-        response.headers.extend({
-            'Access-Control-Allow-Origin': '*'
-        })
-        return response
-
-    return wrapper
+        for (item_path, item_url) in manifest.items():
+            if item_path == path:
+                return '{}/{}'.format(self.assets_base_url, item_url)
+        return None
 
 
 def _load_bundles(fp):
@@ -165,17 +136,38 @@ ABOUT_TEN_YEARS = 60 * 60 * 24 * 365 * 10
 
 def create_assets_view(assets_env, file_path):
     """
-    Create an `Environment` and view callable for serving static assets.
+    Create a view callable for serving static assets.
 
     :param assets_env: The `Environment`
     :param file_path: Package or file path of directory containing assets
     :rtype: callable
     """
-    assets_view = static_view(file_path,
-                              cache_max_age=ABOUT_TEN_YEARS,
-                              use_subpath=True)
-    assets_view = _check_version(assets_env, assets_view)
-    assets_view = _add_cors_header(assets_view)
+
+    resolver = AssetResolver()
+    asset_root = resolver.resolve(file_path).abspath()
+
+    def assets_view(request):
+        path = assets_env.path_for_url(request.path_qs)
+        if not path:
+            raise HTTPNotFound()
+
+        path = '{}/{}'.format(asset_root, path)
+        response = FileResponse(path, request, cache_max_age=ABOUT_TEN_YEARS)
+
+        # Add a CORS header to the response because static assets from
+        # the sidebar are loaded into pages served by a different origin:
+        # The domain hosting the page into which the sidebar has been injected
+        # or embedded.
+        #
+        # Some browsers enforce cross-origin restrictions on certain types of
+        # resources, eg. Firefox enforces same-domain policy for @font-face
+        # unless a CORS header is provided.
+        response.headers.extend({
+            'Access-Control-Allow-Origin': '*'
+        })
+
+        return response
+
     return assets_view
 
 
