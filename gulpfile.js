@@ -10,6 +10,7 @@ var batch = require('gulp-batch');
 var changed = require('gulp-changed');
 var commander = require('commander');
 var endOfStream = require('end-of-stream');
+var filter = require('gulp-filter');
 var gulp = require('gulp');
 var gulpIf = require('gulp-if');
 var gulpUtil = require('gulp-util');
@@ -208,7 +209,7 @@ gulp.task('watch-images', function () {
   gulp.watch(imageFiles, ['build-images']);
 });
 
-var MANIFEST_SOURCE_FILES = 'build/@(fonts|images|scripts|styles)/*.@(js|css|woff|jpg|png|svg)';
+var MANIFEST_SOURCE_FILES = 'build/@(fonts|images|scripts|styles)/**/*';
 
 /**
  * Generate a JSON manifest mapping file paths to
@@ -216,6 +217,7 @@ var MANIFEST_SOURCE_FILES = 'build/@(fonts|images|scripts|styles)/*.@(js|css|wof
  */
 function generateManifest() {
   gulp.src(MANIFEST_SOURCE_FILES)
+    .pipe(filter(file => !file.isDirectory()))
     .pipe(manifest({name: 'manifest.json'}))
     .pipe(through.obj(function (file, enc, callback) {
       gulpUtil.log('Updated asset manifest');
