@@ -18,7 +18,7 @@
             type="submit"
             name="delete_lozenge">
       <img alt="{% trans %}Delete lozenge{% endtrans %}"
-           src="/assets/images/icons/lozenge-close.svg">
+           src="{{ request.asset_url('images/icons/lozenge-close.svg') }}">
     </button>
   </div>
 {% endmacro %}
@@ -26,7 +26,8 @@
 <header class="nav-bar">
   <div class="nav-bar__content">
     <a href="/" title="Hypothesis homepage" class="nav-bar__logo-container"><!--
-      !--><img alt="Hypothesis logo" class="nav-bar__logo" src="/assets/images/logo.svg"></a>
+      !--><img alt="Hypothesis logo" class="nav-bar__logo"
+               src="{{ request.asset_url('images/logo.svg') }}"></a>
 
     <div class="nav-bar__search js-search-bar" data-ref="searchBar">
       <form class="search-bar"

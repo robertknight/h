@@ -196,6 +196,11 @@ def includeme(config):
     config.add_view(route_name='assets', view=assets_view)
     config.add_view(route_name='assets_client', view=assets_client_view)
 
+    def asset_url(request, path):
+        return assets_env.url_for_path(path)
+
+    config.add_request_method(asset_url, name='asset_url')
+
     # We store the environment objects on the registry so that the Jinja2
     # integration can be configured in app.py
     config.registry['assets_env'] = assets_env
