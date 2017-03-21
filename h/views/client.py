@@ -95,6 +95,9 @@ def annotator_token(request):
     the API to authenticate the user identified by the
     request.authenticated_userid of the _current_ request, which may be None.
     """
+    request.response.headers['Access-Control-Allow-Origin'] = '*'
+    request.response.headers['Access-Control-Allow-Methods'] = 'GET'
+
     return generate_jwt(request, 3600)
 
 
