@@ -1,0 +1,39 @@
+{% extends "h:templates/layouts/base.html.jinja2" %}
+
+{% block header %}
+  {% include "h:templates/includes/logo-header.html.jinja2" %}
+{% endblock %}
+
+{% block page_title %}Authorize{% endblock %}
+
+{% block content %}
+  <div class="form-container content">
+    <h1 class="form-header">Authorize {{ client_name }}</h1>
+    {{ client_name }} wants to read and modify your Hypothesis annotations.
+
+    <form class="form" method="POST">
+      <button class="btn">Continue as {{ username }}</button>
+
+      {# Parameters from the initial request #}
+      <input type="hidden" name="response_mode" value="{{ response_mode }}">
+      <input type="hidden" name="response_type" value="{{ response_type }}">
+      <input type="hidden" name="client_id" value="{{ client_id }}">
+
+      {% if origin %}
+      <input type="hidden" name="origin" value="{{ origin }}">
+      {% endif %}
+
+      {% if redirect_uri %}
+      <input type="hidden" name="redirect_uri" value="{{ redirect_uri }}">
+      {% endif %}
+
+      {% if state %}
+      <input type="hidden" name="state" value="{{ state }}">
+      {% endif %}
+    </form>
+    <footer class="form-footer">
+      Don't have a Hypothesis account?
+      <a class="link--footer" href="{{ request.route_path('signup') }}">Sign up</a>
+    </footer>
+  </div>
+{% endblock content %}
