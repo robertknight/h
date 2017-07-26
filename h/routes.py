@@ -42,6 +42,12 @@ def includeme(config):
     config.add_route('admin_mailer', '/admin/mailer')
     config.add_route('admin_mailer_test', '/admin/mailer/test')
     config.add_route('admin_nipsa', '/admin/nipsa')
+    config.add_route('admin_oauth', '/admin/oauth')
+    config.add_route('admin_oauth_create', '/admin/oauth/new')
+    config.add_route('admin_oauth_edit',
+                     '/admin/oauth/{id}',
+                     factory='h.models.auth_client.AuthClientFactory',
+                     traverse='/{id}')
     config.add_route('admin_staff', '/admin/staff')
     config.add_route('admin_users', '/admin/users')
     config.add_route('admin_users_activate', '/admin/users/activate')

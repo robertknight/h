@@ -5,9 +5,25 @@ from __future__ import unicode_literals
 import enum
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.orm import exc
 
 from h.db import Base
 from h.db.mixins import Timestamps
+
+
+class AuthClientFactory(object):
+    """
+    Pyramid resource factory for views that include an AuthClient ID in the URL.
+    """
+    def __init__(self, request):
+        self.request = request
+
+    def __getitem__(self, client_id):
+        try:
+            return self.request.db.query(AuthClient) \
+                                  .filter_by(id=client_id).one()
+        except exc.NoResultFound:
+            raise KeyError()
 
 
 class GrantType(enum.Enum):
