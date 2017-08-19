@@ -44,6 +44,11 @@ class FormController extends Controller {
   constructor(element, options) {
     super(element, options);
 
+    // Set whether to reload just the form (default) or whole page after a
+    // successful submission.
+    this._reloadPageAfterSubmit =
+      element.getAttribute('data-reload-on-success') === 'page';
+
     setElementState(this.refs.cancelBtn, {hidden: false});
     this.refs.cancelBtn.addEventListener('click', (event) => {
       event.preventDefault();
@@ -216,6 +221,9 @@ class FormController extends Controller {
 
     return submitForm(this.element).then((response) => {
       this.options.reload(response.form);
+      if (this._reloadPageAfterSubmit) {
+        window.location.reload();
+      }
     }).catch((err) => {
       if (err.form) {
         // The server processed the request but rejected the submission.

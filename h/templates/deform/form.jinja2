@@ -5,6 +5,7 @@
       method="{{ field.method }}"
       enctype="multipart/form-data"
       accept-charset="utf-8"
+      {%- if field.reload_on_success %} data-reload-on-success="{{ field.reload_on_success }}"{% endif -%}
       class="form {{ field.css_class or '' }}
              {%- if field.use_inline_editing %} js-form {% endif %}">
   <input type="hidden" name="__formid__" value="{{ field.formid }}" />
