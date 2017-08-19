@@ -39,6 +39,11 @@ class RenameUserService(object):
         return True
 
     def rename(self, user, new_username):
+        """
+        Change the username for `user` to `new_username`.
+
+        :returns: The new userid for the user.
+        """
         self.check(user, new_username)
 
         old_userid = user.userid
@@ -58,6 +63,8 @@ class RenameUserService(object):
 
         ids = self._change_annotations(old_userid, new_userid)
         self.reindex(ids)
+
+        return new_userid
 
     def _purge_auth_tickets(self, user):
         self.session.query(models.AuthTicket) \

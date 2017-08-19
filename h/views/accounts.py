@@ -505,7 +505,11 @@ class AccountController(object):
 
     def update_username(self, appstruct):
         svc = self.request.find_service(name='rename_user')
-        svc.rename(self.request.user, appstruct['username'])
+        new_userid = svc.rename(self.request.user, appstruct['username'])
+
+        # Issue the user with a new auth ticket bound to the new userid.
+        headers = security.remember(self.request, new_userid)
+        self.request.response.headers.extend(headers)
 
     def update_email_address(self, appstruct):
         self.request.user.email = appstruct['email']
