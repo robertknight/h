@@ -101,6 +101,30 @@ def new_password_node(**kwargs):
         **kwargs)
 
 
+def new_username_node(**kwargs):
+    """Return a Colander schema node for a new username."""
+    return colander.SchemaNode(
+        colander.String(),
+        validator=colander.All(
+            validators.Length(min=USERNAME_MIN_LENGTH,
+                              max=USERNAME_MAX_LENGTH),
+            colander.Regex(
+                USERNAME_PATTERN,
+                msg=_("Must have only letters, numbers, periods, and "
+                      "underscores.")),
+            unique_username,
+            unblacklisted_username,
+        ),
+        title=_('Username'),
+        hint=_('Must be between {min} and {max} characters, containing only '
+               'letters, numbers, periods, and underscores.').format(
+            min=USERNAME_MIN_LENGTH,
+            max=USERNAME_MAX_LENGTH
+        ),
+        **kwargs
+    )
+
+
 class LoginSchema(CSRFSchema):
     username = colander.SchemaNode(
         colander.String(),
@@ -169,26 +193,7 @@ class ForgotPasswordSchema(CSRFSchema):
 
 
 class RegisterSchema(CSRFSchema):
-    username = colander.SchemaNode(
-        colander.String(),
-        validator=colander.All(
-            validators.Length(min=USERNAME_MIN_LENGTH,
-                              max=USERNAME_MAX_LENGTH),
-            colander.Regex(
-                USERNAME_PATTERN,
-                msg=_("Must have only letters, numbers, periods, and "
-                      "underscores.")),
-            unique_username,
-            unblacklisted_username,
-        ),
-        title=_('Username'),
-        hint=_('Must be between {min} and {max} characters, containing only '
-               'letters, numbers, periods, and underscores.').format(
-            min=USERNAME_MIN_LENGTH,
-            max=USERNAME_MAX_LENGTH
-        ),
-        widget=deform.widget.TextInputWidget(autofocus=True),
-    )
+    username = new_username_node(widget=deform.widget.TextInputWidget(autofocus=True))
     email = email_node(title=_('Email address'))
     password = new_password_node(title=_('Password'))
 
@@ -242,6 +247,25 @@ class ResetPasswordSchema(CSRFSchema):
     password = new_password_node(
         title=_('New password'),
         widget=deform.widget.PasswordWidget(disable_autocomplete=True))
+
+
+class UsernameChangeSchema(CSRFSchema):
+    username = new_username_node()
+    password = password_node(title=_('Confirm password'),
+                             hide_until_form_active=True)
+
+    def validator(self, node, value):
+        super(UsernameChangeSchema, self).validator(node, value)
+        exc = colander.Invalid(node)
+        request = node.bindings['request']
+        svc = request.find_service(name='user_password')
+        user = request.user
+
+        if not svc.check_password(user, value.get('password')):
+            exc['password'] = _('Wrong password.')
+
+        if exc.children:
+            raise exc
 
 
 class EmailChangeSchema(CSRFSchema):

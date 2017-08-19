@@ -442,6 +442,7 @@ class AccountController(object):
     def __init__(self, request):
         self.request = request
 
+        username_schema = schemas.UsernameChangeSchema().bind(request=request)
         email_schema = schemas.EmailChangeSchema().bind(request=request)
         password_schema = schemas.PasswordChangeSchema().bind(request=request)
 
@@ -450,6 +451,11 @@ class AccountController(object):
         counter = itertools.count()
 
         self.forms = {
+            'username': request.create_form(username_schema,
+                                            buttons=(_('Save'),),
+                                            formid='username',
+                                            counter=counter,
+                                            use_inline_editing=True),
             'email': request.create_form(email_schema,
                                          buttons=(_('Save'),),
                                          formid='email',
@@ -466,6 +472,16 @@ class AccountController(object):
     def get(self):
         """Show the user's account."""
         return self._template_data()
+
+    @view_config(request_method='POST',
+                 request_param='__formid__=username')
+    def post_username(self):
+        """Called by Pyramid when the change username form is submitted."""
+        return form.handle_form_submission(
+            self.request,
+            self.forms['username'],
+            on_success=self.update_username,
+            on_failure=self._template_data)
 
     @view_config(request_method='POST',
                  request_param='__formid__=email')
@@ -487,6 +503,10 @@ class AccountController(object):
             on_success=self.update_password,
             on_failure=self._template_data)
 
+    def update_username(self, appstruct):
+        svc = self.request.find_service(name='rename_user')
+        svc.rename(self.request.user, appstruct['username'])
+
     def update_email_address(self, appstruct):
         self.request.user.email = appstruct['email']
 
@@ -496,11 +516,14 @@ class AccountController(object):
 
     def _template_data(self):
         """Return the data needed to render accounts.html.jinja2."""
+        username = self.request.user.username
         email = self.request.user.email
+        username_form = self.forms['username'].render({'username': username})
         password_form = self.forms['password'].render()
         email_form = self.forms['email'].render({'email': email})
 
-        return {'email': email,
+        return {'username_form': username_form,
+                'email': email,
                 'email_form': email_form,
                 'password_form': password_form}
 
