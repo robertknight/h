@@ -84,9 +84,14 @@ class TestCreateForm(object):
                                                          Form,
                                                          matchers,
                                                          pyramid_request):
-        form.create_form(pyramid_request, mock.sentinel.schema, foo='bar')
+        form.create_form(pyramid_request, mock.sentinel.schema,
+                         use_inline_editing=mock.sentinel.use_inline_editing,
+                         reload_on_success=mock.sentinel.reload_on_success,
+                         foo='bar')
 
         Form.assert_called_once_with(mock.sentinel.schema,
+                                     use_inline_editing=mock.sentinel.use_inline_editing,
+                                     reload_on_success=mock.sentinel.reload_on_success,
                                      foo='bar',
                                      renderer=matchers.instance_of(form.Jinja2Renderer))
 

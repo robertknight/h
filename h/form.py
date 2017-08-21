@@ -73,12 +73,29 @@ def create_environment(base):
     return base.overlay(autoescape=True, loader=loader)
 
 
-def create_form(request, *args, **kwargs):
+def create_form(request, schema, use_inline_editing=False, reload_on_success='form',
+                **kwargs):
     """
     Create a :py:class:`deform.Form` instance for this request.
 
     This request method creates a :py:class:`deform.Form` object which (by
     default) will use the renderer configured in the :py:mod:`h.form` module.
+
+    Unused args and kwargs are passed to the `deform.Form` constructor.
+
+    :param request: The Pyramid request
+    :type request: pyramid.request.Request
+    :param schema: The Colander Schema node
+    :type schema: colander.SchemaNode
+    :param use_inline_editing: If `True`, form fields have inline buttons to
+                               Save changes and submissions do not require a
+                               full page reload.
+    :type use_inline_editing: bool
+    :param reload_on_success: If `use_inline_editing` is `True`, specifies
+                              whether to reload just the form ('form')
+                              or the whole page ('page') after successful
+                              form submission.
+    :type reload_on_success: 'form' | 'page'
     """
     env = request.registry[ENVIRONMENT_KEY]
     renderer = Jinja2Renderer(env, {
@@ -86,7 +103,10 @@ def create_form(request, *args, **kwargs):
     })
     kwargs.setdefault('renderer', renderer)
 
-    return deform.Form(*args, **kwargs)
+    return deform.Form(schema,
+                       use_inline_editing=use_inline_editing,
+                       reload_on_success=reload_on_success,
+                       **kwargs)
 
 
 def configure_environment(config):  # pragma: no cover
