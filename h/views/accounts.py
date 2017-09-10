@@ -2,10 +2,12 @@
 
 import datetime
 import itertools
+import re
 
 import colander
 import deform
 import jinja2
+import requests
 from pyramid import httpexceptions
 from pyramid import security
 from pyramid.exceptions import BadCSRFToken
@@ -162,6 +164,85 @@ class AuthController(object):
             self.request.session.invalidate()
         headers = security.forget(self.request)
         return headers
+
+
+# See https://developers.google.com/identity/sign-in/web/backend-auth#calling-the-tokeninfo-endpoint
+GOOGLE_TOKENINFO_URL = 'https://www.googleapis.com/oauth2/v3/tokeninfo'
+
+
+def _suggest_usernames(user_svc, email):
+    """
+    Return a generator of suggested unused usernames.
+
+    :param user_svc:
+    :type user_svc: h.services.user.UserService
+    :param email: The email address to use for generating suggestions.
+    """
+
+    # This is imperfect since an email address may contain quoted "@" chars in
+    # the local part, but good enough for our purposes.
+    [local, domain] = email.split('@')
+
+    def gen_candidate(prefix, suffix=''):
+        max_len = models.user.USERNAME_MAX_LENGTH
+        return prefix[0:max_len - len(suffix)] + suffix
+
+    def candidates(prefix):
+        yield gen_candidate(prefix)
+
+        idx = 2
+        while True:
+            suffix = '_{}'.format(idx)
+            yield gen_candidate(prefix, suffix)
+            idx += 1
+
+    # Replace all chars disallowed in usernames with underscores.
+    prefix = re.sub('[^a-zA-Z0-9._]', '_', local)
+    if len(prefix) < models.user.USERNAME_MIN_LENGTH:
+        prefix = 'user_{}'.format(prefix)
+
+    for candidate in candidates(prefix):
+        if not user_svc.fetch_for_login(candidate):
+            yield candidate
+
+
+@view_config(route_name='login_with_google',
+             request_method='POST')
+def login_with_google(request):
+    """
+    Log the user in using their Google account.
+    """
+    id_token = request.params['id_token']
+    user_svc = request.find_service(name='user')
+
+    # Verify ID info.
+    # `id_token` is a JWT token so this can be done without an API call, but it
+    # means that we have to setup the secrets for decoding Google's JWT tokens.
+    id_info = requests.get(GOOGLE_TOKENINFO_URL, params={'id_token': id_token}) \
+                      .json()
+
+    if not id_info['email_verified']:
+        return httpexceptions.HTTPBadRequest('Email not verified')
+
+    email = id_info['email']
+    user = user_svc.fetch_for_login(email)
+
+    if user is None:
+        username = next(_suggest_usernames(user_svc, email))
+        signup_svc = request.find_service(name='user_signup')
+        user = signup_svc.signup(username=username,
+                                 email=email,
+                                 password=None,
+                                 require_activation=False)
+
+    # Log the user in.
+    if user:
+        user.last_login_date = datetime.datetime.utcnow()
+        request.registry.notify(LoginEvent(request, user))
+        headers = security.remember(request, user.userid)
+        login_redirect = request.params.get('next', _login_redirect_url(request))
+        return httpexceptions.HTTPFound(location=login_redirect,
+                                        headers=headers)
 
 
 @view_defaults(route_name='forgot_password',

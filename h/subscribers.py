@@ -17,6 +17,9 @@ def add_renderer_globals(event):
     # Add Google Analytics
     event['ga_tracking_id'] = request.registry.settings.get('ga_tracking_id')
 
+    # Scripts that are only used on certain pages.
+    event['extra_scripts'] = set()
+
     # Add a frontend settings object which will be rendered as JSON into the
     # page.
     event['frontend_settings'] = {}

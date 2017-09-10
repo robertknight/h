@@ -71,6 +71,9 @@
     {% block footer %}{% endblock %}
 
     {% block scripts %}
+    {% for url in extra_scripts %}
+      <script src="{{ url }}"></script>
+    {% endfor %}
     {% for url in asset_urls("site_js") %}
     <script src="{{ url }}"></script>
     {% endfor %}

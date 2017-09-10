@@ -18,6 +18,7 @@ const DropdownMenuController = require('./controllers/dropdown-menu-controller')
 const FormController = require('./controllers/form-controller');
 const FormCancelController = require('./controllers/form-cancel-controller');
 const FormSelectOnFocusController = require('./controllers/form-select-onfocus-controller');
+const GoogleSignInButtonController = require('./controllers/google-signin-button-controller');
 const InputAutofocusController = require('./controllers/input-autofocus-controller');
 const SearchBarController = require('./controllers/search-bar-controller');
 const SearchBucketController = require('./controllers/search-bucket-controller');
@@ -35,6 +36,7 @@ const controllers = {
   '.js-dropdown-menu': DropdownMenuController,
   '.js-form': FormController,
   '.js-form-cancel': FormCancelController,
+  '.js-google-signin-button': GoogleSignInButtonController,
   '.js-input-autofocus': InputAutofocusController,
   '.js-select-onfocus': FormSelectOnFocusController,
   '.js-search-bar': SearchBarController,

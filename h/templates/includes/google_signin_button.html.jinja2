@@ -1,0 +1,34 @@
+{#
+  Google Sign in button.
+
+  Render a button which logs the user into the website using their Google
+  account.
+
+  Usage:
+    {% block header %}
+    google_signin_button_header()
+    {% endblock %}
+
+    {% block content %}
+    google_signin_button()
+    {% endblock %}
+#}
+
+{% macro google_signin_button_header() %}
+  {# See https://developers.google.com/identity/sign-in/web/sign-in #}
+  {# TODO: Replace hardcoded client ID with env var reference #}
+  <meta name="google-signin-client_id" content="225746855558-dv6g78ogoobe3dnfapcikrs0ue4tkj8s.apps.googleusercontent.com">
+{% endmacro %}
+
+{% macro google_signin_button(request, extra_scripts) %}
+{% do extra_scripts.add('https://apis.google.com/js/platform.js') %}
+<div class="js-google-signin-button">
+  <form method="post" action="{{ request.route_url('login_with_google') }}"
+        data-ref="signInForm">
+    <input name="id_token" data-ref="idTokenInput">
+    {% if request.params.get('next') %}
+      <input name="next" value="{{ request.params['next'] }}">
+    {% endif %}
+  </form>
+</div>
+{% endmacro %}

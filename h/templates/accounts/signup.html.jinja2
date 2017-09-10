@@ -1,4 +1,10 @@
 {% extends "h:templates/layouts/base.html.jinja2" %}
+{% from "h:templates/includes/google_signin_button.html.jinja2" import google_signin_button, google_signin_button_header %}
+
+{% block meta %}
+  {{ super() }}
+  {{ google_signin_button_header() }}
+{% endblock %}
 
 {% block header %}
   {% include "h:templates/includes/logo-header.html.jinja2" %}
@@ -12,6 +18,7 @@ Sign up for Hypothesis
 <div class="form-container content">
   <h1 class="form-header">Sign up for Hypothesis</h1>
   {{ form }}
+  {{ google_signin_button(request, extra_scripts) }}
   <footer class="form-footer">
     Already have an account?
     <a class="link--footer" href="{{ request.route_path('login') }}">Log in</a>
