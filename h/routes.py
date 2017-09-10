@@ -11,6 +11,7 @@ def includeme(config):
 
     # Accounts
     config.add_route('login', '/login')
+    config.add_route('login_with_google', '/login_with_google')
     config.add_route('logout', '/logout')
     config.add_route('signup', '/signup')
     config.add_route('activate', '/activate/{id}/{code}')

@@ -15,6 +15,7 @@ const upgradeElements = require('./base/upgrade-elements');
 // Additional controllers for user-facing site.
 const AuthorizeFormController = require('./controllers/authorize-form-controller');
 const CreateGroupFormController = require('./controllers/create-group-form-controller');
+const GoogleSignInButtonController = require('./controllers/google-signin-button-controller');
 const SearchBarController = require('./controllers/search-bar-controller');
 const SearchBucketController = require('./controllers/search-bucket-controller');
 const ShareWidgetController = require('./controllers/share-widget-controller');
@@ -23,6 +24,7 @@ const SignupFormController = require('./controllers/signup-form-controller');
 const controllers = Object.assign({
   '.js-authorize-form': AuthorizeFormController,
   '.js-create-group-form': CreateGroupFormController,
+  '.js-google-signin-button': GoogleSignInButtonController,
   '.js-search-bar': SearchBarController,
   '.js-search-bucket': SearchBucketController,
   '.js-share-widget': ShareWidgetController,

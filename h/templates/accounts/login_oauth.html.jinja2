@@ -1,6 +1,11 @@
 {% extends "h:templates/layouts/base.html.jinja2" %}
+{% from "h:templates/includes/google_signin_button.html.jinja2" import google_signin_button, google_signin_button_header %}
 
 {% block page_title %}Log in{% endblock %}
+
+{% block header %}
+{{ google_signin_button_header() }}
+{% endblock %}
 
 {% block content %}
   <div class="form-container form-container--popup content">
@@ -10,7 +15,9 @@
 
     {{ form }}
   </div>
-  {# In the context of OAuth, the login screen is often shown in a popup.
+    {{ google_signin_button(request, extra_scripts) }}
+
+    {# In the context of OAuth, the login screen is often shown in a popup.
        Use a more compact footer and make the Sign Up link open in a
        new window where there is more space and so the user can continue the
        OAuth flow after they sign up. #}
