@@ -114,6 +114,12 @@ def execute(request, query, page_size):
     if result.total == 0:
         return result
 
+    # Create (annotation ID => reply count) map.
+    reply_counts = {}
+    for idx in range(len(search_result.annotation_ids)):
+        ann_id = search_result.annotation_ids[idx]
+        reply_counts[ann_id] = search_result.reply_counts[idx]
+
     # Load all referenced annotations from the database, bucket them, and add
     # the buckets to result.timeframes.
     anns = fetch_annotations(request.db, search_result.annotation_ids)
@@ -135,7 +141,8 @@ def execute(request, query, page_size):
                     'annotation': presenters.AnnotationHTMLPresenter(annotation),
                     'group': groups.get(annotation.groupid),
                     'html_link': links.html_link(request, annotation),
-                    'incontext_link': links.incontext_link(request, annotation)
+                    'incontext_link': links.incontext_link(request, annotation),
+                    'reply_count': reply_counts[annotation.id],
                 })
 
     return result

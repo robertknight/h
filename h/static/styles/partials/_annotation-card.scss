@@ -140,3 +140,7 @@
   @include styled-text;
   overflow-wrap: break-word;
 }
+
+.annotation-card__reply-count {
+  color: $grey-5;
+}

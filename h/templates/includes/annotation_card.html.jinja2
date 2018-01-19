@@ -62,6 +62,13 @@
     {% endfor %}
   </div>
   <footer class="annotation-card__footer">
+    {% if presented_annotation.reply_count %}
+    <a class="annotation-card__reply-count"
+       href="{{ presented_annotation.html_link }}"
+       target="_blank"
+       title="See replies to this annotation">{{ presented_annotation.reply_count }} replies</a>
+    {% endif %}
+    <div class="u-stretch"></div>
     {% if presented_annotation.incontext_link %}
       <a href="{{ presented_annotation.incontext_link }}"
          rel="nofollow noopener"

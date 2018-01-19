@@ -16,6 +16,7 @@ SearchResult = namedtuple('SearchResult', [
     'total',
     'annotation_ids',
     'reply_ids',
+    'reply_counts',
     'aggregations'])
 
 
@@ -54,10 +55,10 @@ class Search(object):
         :returns: The search results
         :rtype: SearchResult
         """
-        total, annotation_ids, aggregations = self.search_annotations(params)
+        total, annotation_ids, reply_counts, aggregations = self.search_annotations(params)
         reply_ids = self.search_replies(annotation_ids)
 
-        return SearchResult(total, annotation_ids, reply_ids, aggregations)
+        return SearchResult(total, annotation_ids, reply_ids, reply_counts, aggregations)
 
     def append_filter(self, filter_):
         """Append a search filter to the annotation and reply query."""
@@ -80,12 +81,13 @@ class Search(object):
         with self._instrument():
             response = self.es.conn.search(index=self.es.index,
                                            doc_type=self.es.t.annotation,
-                                           _source=False,
+                                           _source=['thread_ids'],
                                            body=self.builder.build(params))
         total = response['hits']['total']
         annotation_ids = [hit['_id'] for hit in response['hits']['hits']]
+        reply_counts = [len(hit['_source']['thread_ids']) for hit in response['hits']['hits']]
         aggregations = self._parse_aggregation_results(response.get('aggregations', None))
-        return (total, annotation_ids, aggregations)
+        return (total, annotation_ids, reply_counts, aggregations)
 
     def search_replies(self, annotation_ids):
         if not self.separate_replies:
