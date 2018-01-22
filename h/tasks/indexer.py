@@ -26,6 +26,9 @@ def add_annotation(id_):
 
 @celery.task
 def delete_annotation(id_):
+    # TODO -If this annotation is a reply, then re-index the thread-root as well
+    # in order to update its `thread_ids` field in the index.
+
     delete(celery.request.es, id_)
 
     # If a reindex is running at the moment, delete annotation from the
