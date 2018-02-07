@@ -66,7 +66,6 @@ elsewhere in the Hypothesis application. URI expansion is handled by
 import re
 
 from h._compat import (
-    text_type,
     url_quote,
     url_quote_plus,
     url_unquote,
@@ -133,7 +132,8 @@ VIA_PREFIX = "https://via.hypothes.is/"
 
 def normalize(uristr):
     """Translate the given URI into a normalized form."""
-    uristr = uristr.encode('utf-8')
+    if isinstance(uristr, bytes):
+        uristr = uristr.decode('utf-8')
 
     # Strip proxy prefix for proxied URLs
     for scheme in URL_SCHEMES:
@@ -146,11 +146,11 @@ def normalize(uristr):
 
     # If this isn't a URL, we don't perform any normalization
     if uri.scheme.lower() not in URL_SCHEMES:
-        return text_type(uristr, 'utf-8')
+        return uristr
 
     # Don't perform normalization on URLs with no hostname.
     if uri.hostname is None:
-        return text_type(uristr, 'utf-8')
+        return uristr
 
     scheme = _normalize_scheme(uri)
     netloc = _normalize_netloc(uri)
@@ -160,7 +160,7 @@ def normalize(uristr):
 
     uri = urlparse.SplitResult(scheme, netloc, path, query, fragment)
 
-    return text_type(uri.geturl(), 'utf-8')
+    return uri.geturl()
 
 
 def _normalize_scheme(uri):
