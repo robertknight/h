@@ -151,6 +151,7 @@ def read(context, request):
 def read_jsonld(context, request):
     request.response.content_type = 'application/ld+json'
     request.response.content_type_params = {
+        'charset': 'utf-8',
         'profile': str(AnnotationJSONLDPresenter.CONTEXT_URL)}
     presenter = AnnotationJSONLDPresenter(context)
     return presenter.asdict()
