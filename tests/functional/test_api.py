@@ -20,7 +20,7 @@ class TestAPI(object):
     def test_annotation_read(self, app, annotation):
         """Fetch an annotation by ID."""
         res = app.get('/api/annotations/' + annotation.id,
-                      headers={b'accept': b'application/json'})
+                      headers={'accept': 'application/json'})
         data = res.json
         assert data['id'] == annotation.id
 
