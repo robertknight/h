@@ -2,6 +2,7 @@
 
 """Custom SQLAlchemy types for use with the Annotations API database."""
 
+from h._compat import text_type
 import binascii
 import base64
 import uuid
@@ -85,10 +86,13 @@ class AnnotationSelectorJSONB(types.TypeDecorator):
 
 
 def _get_hex_from_urlsafe(value):
-    bytestr = bytes(value)
-
     def _fail():
         raise InvalidUUID('{0!r} is not a valid encoded UUID'.format(value))
+
+    if not isinstance(value, text_type):
+        _fail()
+
+    bytestr = value.encode()
 
     if len(bytestr) == 22:
         # 22-char inputs represent 16 bytes of data, which when normally
@@ -98,7 +102,7 @@ def _get_hex_from_urlsafe(value):
             data = _must_b64_decode(bytestr + b'==', expected_size=16)
         except (TypeError, binascii.Error):
             _fail()
-        return binascii.hexlify(data)
+        return binascii.hexlify(data).decode()
 
     if len(bytestr) == 20:
         # 20-char inputs represent 15 bytes of data, which requires no padding
@@ -107,7 +111,7 @@ def _get_hex_from_urlsafe(value):
             data = _must_b64_decode(bytestr, expected_size=15)
         except (TypeError, binascii.Error):
             _fail()
-        hexstring = binascii.hexlify(data)
+        hexstring = binascii.hexlify(data).decode()
         # These are ElasticSearch flake IDs, so to convert them into UUIDs we
         # insert the magic nibbles at the appropriate points. See the comments
         # on ES_FLAKE_MAGIC_BYTE for details.
@@ -134,11 +138,11 @@ def _get_urlsafe_from_hex(value):
         data = binascii.unhexlify(hexstring[0:12] +
                                   hexstring[13:16] +
                                   hexstring[17:32])
-        return base64.urlsafe_b64encode(data)
+        return base64.urlsafe_b64encode(data).decode()
 
     # Encode UUID bytes and strip two bytes of padding
     data = binascii.unhexlify(hexstring)
-    return base64.urlsafe_b64encode(data)[:-2]
+    return base64.urlsafe_b64encode(data)[:-2].decode()
 
 
 def _must_b64_decode(data, expected_size=None):
