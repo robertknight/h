@@ -31,11 +31,17 @@ FakeGroup = namedtuple('FakeGroup', ['pubid'])
 #
 CONTROL_CHARS = set(chr(n) for n in range(0x00, 0x1F+1)) | set('\x7f')
 
+# We assume user ID and password strings are UTF-8 and surrogates are not
+# allowed in UTF-8.
+SURROGATE_CHARS = set(chr(n) for n in range(0xD800, 0xDBFF+1)) | \
+                  set(chr(n) for n in range(0xDC00, 0xDFFF+1))
+INVALID_USER_PASS_CHARS = CONTROL_CHARS | SURROGATE_CHARS
+
 # Furthermore, from RFC 7617:
 #
 #     a user-id containing a colon character is invalid
 #
-INVALID_USERNAME_CHARS = CONTROL_CHARS | set(':')
+INVALID_USERNAME_CHARS = INVALID_USER_PASS_CHARS | set(':')
 
 # The character encoding of the user-id and password is *undefined* by
 # specification for historical reasons:
@@ -57,7 +63,7 @@ INVALID_USERNAME_CHARS = CONTROL_CHARS | set(':')
 # successfully decode valid Unicode user-pass strings.
 #
 VALID_USERNAME_CHARS = st.characters(blacklist_characters=INVALID_USERNAME_CHARS)
-VALID_PASSWORD_CHARS = st.characters(blacklist_characters=CONTROL_CHARS)
+VALID_PASSWORD_CHARS = st.characters(blacklist_characters=INVALID_USER_PASS_CHARS)
 
 
 class TestBasicAuthCreds(object):
