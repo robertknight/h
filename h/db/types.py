@@ -96,7 +96,7 @@ def _get_hex_from_urlsafe(value):
         # that back before decoding.
         try:
             data = _must_b64_decode(bytestr + b'==', expected_size=16)
-        except TypeError:
+        except (TypeError, binascii.Error):
             _fail()
         return binascii.hexlify(data)
 
@@ -105,7 +105,7 @@ def _get_hex_from_urlsafe(value):
         # corrections.
         try:
             data = _must_b64_decode(bytestr, expected_size=15)
-        except TypeError:
+        except (TypeError, binascii.Error):
             _fail()
         hexstring = binascii.hexlify(data)
         # These are ElasticSearch flake IDs, so to convert them into UUIDs we
