@@ -14,7 +14,7 @@ def test_configure_generates_secret_key_if_missing():
 def test_configure_doesnt_override_secret_key():
     config = configure(environ={}, settings={'secret_key': 'foobar'})
 
-    assert config.registry.settings['secret_key'] == 'foobar'
+    assert config.registry.settings['secret_key'] == b'foobar'
 
 
 @pytest.mark.parametrize('env_var,env_val,setting_name,setting_val', [
