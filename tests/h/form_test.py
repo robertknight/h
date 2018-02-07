@@ -172,7 +172,7 @@ class TestHandleFormSubmission(object):
                                     mock_callable(),
                                     mock.sentinel.on_failure)
 
-        form_.validate.assert_called_once_with(pyramid_request.POST.items())
+        form_.validate.assert_called_once_with(list(pyramid_request.POST.items()))
 
     def test_if_validation_fails_it_calls_on_failure(self,
                                                      pyramid_request,

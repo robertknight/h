@@ -124,7 +124,7 @@ def handle_form_submission(request, form, on_success, on_failure):
 
     """
     try:
-        appstruct = form.validate(request.POST.items())
+        appstruct = form.validate(list(request.POST.items()))
     except deform.ValidationFailure:
         result = on_failure()
         request.response.status_int = 400
