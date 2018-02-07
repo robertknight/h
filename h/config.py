@@ -29,6 +29,11 @@ DEFAULT_SALT = (b"\xbc\x9ck!k\x81(\xb6I\xaa\x90\x0f'}\x07\xa1P\xd9\xb7\xcb"
                 b"\x9f\x1b\x96\xc1\xfa\x8b\x19\x82\xa3[\x19\xcb\xa4\x1a\x0f"
                 b"\xe4\xcb\r\x17\x7f\xfbh\xd5^W\xdb\xe6")
 
+
+def asbytes(str_):
+    return str_.encode()
+
+
 # The list of all settings read from the system environment. These are in
 # reverse-priority order, meaning that later settings trump earlier settings.
 SETTINGS = [
@@ -56,8 +61,8 @@ SETTINGS = [
     EnvSetting('statsd.prefix', 'STATSD_PREFIX'),
 
     # Configuration for Pyramid
-    EnvSetting('secret_key', 'SECRET_KEY', type=bytes),
-    EnvSetting('secret_salt', 'SECRET_SALT', type=bytes),
+    EnvSetting('secret_key', 'SECRET_KEY', type=asbytes),
+    EnvSetting('secret_salt', 'SECRET_SALT', type=asbytes),
 
     # Configuration for h
     EnvSetting('csp.enabled', 'CSP_ENABLED', type=asbool),
@@ -117,6 +122,9 @@ def configure(environ=None, settings=None):
 
         if result is not None:
             settings.update(result)
+        elif isinstance(s, EnvSetting):
+            if settings.get(s.setting, None):
+                settings[s.setting] = s.type(settings[s.setting])
 
     if 'secret_key' not in settings:
         log.warn('No secret key provided: using transient key. Please '
