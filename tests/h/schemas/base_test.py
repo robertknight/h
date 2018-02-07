@@ -19,13 +19,13 @@ class ExampleCSRFSchema(CSRFSchema):
 
 class ExampleJSONSchema(JSONSchema):
     schema = {
-        b'$schema': b'http://json-schema.org/draft-04/schema#',
-        b'type': b'object',
-        b'properties': {
-            b'foo': {b'type': b'string'},
-            b'bar': {b'type': b'integer'},
+        '$schema': 'http://json-schema.org/draft-04/schema#',
+        'type': 'object',
+        'properties': {
+            'foo': {'type': 'string'},
+            'bar': {'type': 'integer'},
         },
-        b'required': [b'foo', b'bar'],
+        'required': ['foo', 'bar'],
     }
 
 
