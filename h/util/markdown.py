@@ -31,11 +31,17 @@ def _filter_link_attributes(tag, name, value):
     return False
 
 
+def _merge_dicts(a, b):
+    tmp = a.copy()
+    tmp.update(b)
+    return tmp
+
+
 MARKDOWN_ATTRIBUTES = {
     'a': _filter_link_attributes,
     'img': ['alt', 'src', 'title'],
 }
-ALLOWED_ATTRIBUTES = dict(bleach.ALLOWED_ATTRIBUTES.items() + MARKDOWN_ATTRIBUTES.items())
+ALLOWED_ATTRIBUTES = _merge_dicts(bleach.ALLOWED_ATTRIBUTES, MARKDOWN_ATTRIBUTES)
 
 # Singleton instance of the bleach cleaner
 cleaner = None
