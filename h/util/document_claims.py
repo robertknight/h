@@ -112,7 +112,7 @@ def document_metas_from_data(document_data, claimant):
         if path_prefix is None:
             path_prefix = []
 
-        for key, value in items.iteritems():
+        for key, value in items.items():
             keypath = path_prefix[:]
             keypath.append(key)
 
@@ -140,7 +140,7 @@ def document_metas_from_data(document_data, claimant):
                     'claimant': claimant,
                 })
 
-    items = {k: v for k, v in document_data.iteritems() if k != 'link'}
+    items = {k: v for k, v in document_data.items() if k != 'link'}
     document_meta_dicts = []
     transform_meta_(document_meta_dicts, items)
     return document_meta_dicts

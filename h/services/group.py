@@ -59,7 +59,7 @@ class GroupService(object):
         access_flags = GROUP_ACCESS_FLAGS.get(type_)
         if access_flags is None:
             raise ValueError('Invalid group type %s' % type_)
-        for attr, value in access_flags.iteritems():
+        for attr, value in access_flags.items():
             setattr(group, attr, value)
 
         if group.joinable_by is not None:
