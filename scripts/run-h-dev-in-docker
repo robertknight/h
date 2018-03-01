@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# Run "h" in a Docker container locally.
+# The container image must first be built using `make docker`.
+
+# This script is for use during development and should not be used in
+# production.
+
+set -eu
+
+# Names of containers running services.
+ES_CONTAINER=elasticsearch
+PG_CONTAINER=postgres
+RABBITMQ_CONTAINER=rabbitmq
+
+docker run \
+    --link $RABBITMQ_CONTAINER \
+    --link $PG_CONTAINER \
+    --link $ES_CONTAINER \
+    -e "APP_URL=http://localhost:5000" \
+    -e "BROKER_URL=amqp://guest:guest@$RABBITMQ_CONTAINER:5672//" \
+    -e "DATABASE_URL=postgresql://postgres@$PG_CONTAINER/postgres" \
+    -e "ELASTICSEARCH_HOST=http://$ES_CONTAINER:9200" \
+    -p 5000:5000 \
+    hypothesis/hypothesis:dev
