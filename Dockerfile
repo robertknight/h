@@ -9,7 +9,7 @@ RUN apk add --no-cache \
     libffi \
     libpq \
     nginx \
-    python2 \
+    python3 \
     py2-pip \
     nodejs \
     git
@@ -29,9 +29,11 @@ RUN apk add --no-cache --virtual build-deps \
     build-base \
     libffi-dev \
     postgresql-dev \
-    python-dev \
-  && pip install --no-cache-dir -U pip supervisor \
-  && pip install --no-cache-dir -r requirements.txt \
+    python3-dev \
+  && python3 -m ensurepip \
+  && pip3 install --no-cache-dir -U pip \
+  && pip install --no-cache-dir -U supervisor \
+  && pip3 install --no-cache-dir -r requirements.txt \
   && apk del build-deps
 
 # Copy nginx config
@@ -59,6 +61,7 @@ EXPOSE 5000
 ENV PATH /var/lib/hypothesis/bin:$PATH
 ENV PYTHONIOENCODING utf_8
 ENV PYTHONPATH /var/lib/hypothesis:$PYTHONPATH
+ENV USE_PYTHON3 1
 
 # Start the web server by default
 USER hypothesis
