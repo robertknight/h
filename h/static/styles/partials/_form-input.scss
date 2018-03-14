@@ -45,13 +45,12 @@
       color: $brand;
     }
 
-    & > .form-input__input {
-      color: $brand;
-    }
-
     & > .form-input__error-list {
       display: list-item;
     }
+  }
+  .form-input__input.is-error {
+    color: $brand;
   }
 
   // Descriptive label above the input field
@@ -209,7 +208,7 @@
     border-color: $grey-6;
   }
 
-  .form-input.is-error > .form-input__input {
+  .form-input__input.is-error {
     @include thick-border;
     border-color: $brand;
     padding-right: $validation-message-width + 10px;

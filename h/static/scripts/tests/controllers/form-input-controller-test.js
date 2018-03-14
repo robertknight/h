@@ -42,4 +42,18 @@ describe('FormInputController', () => {
     ctrl.setState({ hasError: false });
     assert.equal(ctrl.element.classList.contains('is-error'), false);
   });
+
+  it('toggles "is-error" class on "formInput" part if present', () => {
+    const template = `
+      <div class="js-form-input is-error">
+        <label>Some label</label>
+        <input type="text" class="is-error" name="some-text-input" data-ref="formInput">
+      </div>
+    `.trim();
+    const ctrl = setupComponent(document, template, FormInputController);
+
+    ctrl.setState({ hasError: false });
+
+    assert.equal(ctrl.refs.formInput.classList.contains('is-error'), false);
+  });
 });

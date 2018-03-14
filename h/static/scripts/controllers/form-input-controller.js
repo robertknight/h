@@ -27,6 +27,9 @@ class FormInputController extends Controller {
 
   update() {
     setElementState(this.element, { error: this.state.hasError });
+    if (this.refs.formInput) {
+      setElementState(this.refs.formInput, { error: this.state.hasError });
+    }
   }
 }
 
