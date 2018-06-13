@@ -18,7 +18,7 @@ class TestTopLevelAnnotationsFilter(object):
         assert [annotation.id] == result.annotation_ids
 
     @pytest.fixture
-    def search(self, search):
+    def search(self, search, use_both_es_versions):
         search.append_filter(query.TopLevelAnnotationsFilter())
         return search
 
@@ -36,7 +36,7 @@ class TestAuthorityFilter(object):
         assert sorted(result.annotation_ids) == sorted(annotations_auth1)
 
     @pytest.fixture
-    def search(self, search):
+    def search(self, search, use_both_es_versions):
         search.append_filter(query.AuthorityFilter("auth1"))
         return search
 
@@ -83,7 +83,7 @@ class TestAuthFilter(object):
         assert sorted(result.annotation_ids) == sorted(shared_ids)
 
     @pytest.fixture
-    def search(self, search, pyramid_request):
+    def search(self, search, pyramid_request, use_both_es_versions):
         search.append_filter(query.AuthFilter(pyramid_request))
         return search
 
@@ -91,7 +91,7 @@ class TestAuthFilter(object):
 class TestGroupFilter(object):
 
     @pytest.fixture
-    def search(self, search):
+    def search(self, search, use_both_es_versions):
         search.append_filter(query.GroupFilter())
         return search
 
@@ -99,7 +99,7 @@ class TestGroupFilter(object):
 class TestGroupAuthFilter(object):
 
     @pytest.fixture
-    def search(self, search, pyramid_request):
+    def search(self, search, pyramid_request, use_both_es_versions):
         search.append_filter(query.GroupAuthFilter(pyramid_request))
         return search
 
@@ -134,7 +134,7 @@ class TestUserFilter(object):
         assert sorted(result.annotation_ids) == sorted(expected_ids)
 
     @pytest.fixture
-    def search(self, search):
+    def search(self, search, use_both_es_versions):
         search.append_filter(query.UserFilter())
         return search
 
@@ -142,7 +142,7 @@ class TestUserFilter(object):
 class TestUriFilter(object):
 
     @pytest.fixture
-    def search(self, search, pyramid_request):
+    def search(self, search, pyramid_request, use_both_es_versions):
         search.append_filter(query.UriFilter(pyramid_request))
         return search
 
@@ -150,7 +150,7 @@ class TestUriFilter(object):
 class TestDeletedFilter(object):
 
     @pytest.fixture
-    def search(self, search):
+    def search(self, search, use_both_es_versions):
         search.append_filter(query.DeletedFilter())
         return search
 
@@ -158,7 +158,7 @@ class TestDeletedFilter(object):
 class TestNipsaFilter(object):
 
     @pytest.fixture
-    def search(self, search, pyramid_request):
+    def search(self, search, pyramid_request, use_both_es_versions):
         search.append_filter(query.NipsaFilter(pyramid_request))
         return search
 
@@ -166,7 +166,7 @@ class TestNipsaFilter(object):
 class TestAnyMatcher(object):
 
     @pytest.fixture
-    def search(self, search):
+    def search(self, search, use_both_es_versions):
         search.append_matcher(query.AnyMatcher())
         return search
 
@@ -210,7 +210,7 @@ class TestTagsMatcher(object):
         assert sorted(result.annotation_ids) == sorted(matched_ids)
 
     @pytest.fixture
-    def search(self, search):
+    def search(self, search, use_both_es_versions):
         search.append_matcher(query.TagsMatcher())
         return search
 
@@ -226,7 +226,7 @@ class TestRepliesMatcher(object):
 class TestTagsAggregation(object):
 
     @pytest.fixture
-    def search(self, search):
+    def search(self, search, use_both_es_versions):
         search.append_aggregation(query.TagsAggregation())
         return search
 
@@ -234,7 +234,7 @@ class TestTagsAggregation(object):
 class TestUsersAggregation(object):
 
     @pytest.fixture
-    def search(self, search):
+    def search(self, search, use_both_es_versions):
         search.append_aggregation(query.UsersAggregation())
         return search
 
@@ -245,3 +245,8 @@ def search(pyramid_request):
     # Remove all default filters, aggregators, and matchers.
     search.clear()
     return search
+
+
+@pytest.fixture(params=['es1', 'es6'])
+def use_both_es_versions(pyramid_request, request):
+    pyramid_request.feature.flags['search_es6'] = request.param == 'es6'
