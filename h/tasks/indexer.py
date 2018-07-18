@@ -54,14 +54,24 @@ def delete_annotation(id_):
 @celery.task
 def reindex_user_annotations(userid):
     ids = [a.id for a in celery.request.db.query(models.Annotation.id).filter_by(userid=userid)]
+    _reindex_annotations(celery.request, ids)
 
-    indexer = BatchIndexer(celery.request.db, celery.request.es, celery.request)
+
+# Results are enabled for this task because the `search reindex` command awaits
+# completion.
+@celery.task(ignore_result=False)
+def reindex_annotations(ids):
+    _reindex_annotations(celery.request, ids)
+
+
+def _reindex_annotations(request, ids):
+    indexer = BatchIndexer(request.db, request.es, request)
     errored = indexer.index(ids)
     if errored:
         log.warning('Failed to re-index annotations %s', errored)
 
-    if celery.request.feature('index_es6'):
-        indexer = BatchIndexer(celery.request.db, celery.request.es6, celery.request)
+    if request.feature('index_es6'):
+        indexer = BatchIndexer(request.db, request.es6, request)
         errored = indexer.index(ids)
         if errored:
             log.warning('Failed to re-index annotations into ES6 %s', errored)
