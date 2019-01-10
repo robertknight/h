@@ -12,9 +12,10 @@ from elasticsearch import helpers as es_helpers
 from sqlalchemy.orm import subqueryload
 
 from h import models
-from h import presenters
+from h.util.datetime import utc_iso8601
 from h.events import AnnotationTransformEvent
 from h.util.query import column_windows
+from h.util.user import split_user
 
 log = logging.getLogger(__name__)
 
@@ -43,8 +44,8 @@ def index(es, annotation, request, target_index=None):
     :param target_index: the index name, uses default index if not given
     :type target_index: unicode
     """
-    presenter = presenters.AnnotationSearchIndexPresenter(annotation, request)
-    annotation_dict = presenter.asdict()
+    moderation_svc = request.find_service(name="annotation_moderation")
+    annotation_dict = format_annotation(annotation, moderation_svc.all_hidden)
 
     event = AnnotationTransformEvent(request, annotation, annotation_dict)
     request.registry.notify(event)
@@ -166,10 +167,8 @@ class BatchIndexer(object):
                 "_id": annotation.id,
             }
         }
-        data = presenters.AnnotationSearchIndexPresenter(
-            annotation, self.request
-        ).asdict()
-
+        moderation_svc = self.request.find_service(name="annotation_moderation")
+        data = format_annotation(annotation, moderation_svc.all_hidden)
         event = AnnotationTransformEvent(self.request, annotation, data)
         self.request.registry.notify(event)
 
@@ -234,3 +233,61 @@ def _log_status(stream, log_every=1000):
             then = now
             rate = log_every / delta
             log.info("indexed {:d}k annotations, rate={:.0f}/s".format(i // 1000, rate))
+
+
+def format_annotation(annotation, hidden_annotations):
+    """
+    Format an annotation into a JSON document for indexing into Elasticsearch.
+
+    This formats the annotation and associated document metadata into a JSON
+    document that matches the schema defined in ``h.search.config``.
+
+    :type annotation: h.models.Annotation
+    :param hidden_annotations:
+        Callable that takes a list of annotation IDs and returns the IDs of
+        those which should not be returned in searches.
+    """
+    userid_parts = split_user(annotation.userid)
+
+    document = {}
+    if annotation.document and annotation.document.title:
+        document["title"] = [annotation.document.title]
+    if annotation.document and annotation.document.web_uri:
+        document["web_uri"] = annotation.document.web_uri
+
+    target = {"source": annotation.target_uri}
+    if annotation.target_selectors:
+        target["selector"] = annotation.target_selectors
+
+    result = {
+        "authority": userid_parts["domain"],
+        "id": annotation.id,
+        "created": utc_iso8601(annotation.created),
+        "updated": utc_iso8601(annotation.updated),
+        "user": annotation.userid,
+        "user_raw": annotation.userid,
+        "uri": annotation.target_uri,
+        "text": annotation.text or "",
+        "tags": annotation.tags or [],
+        "tags_raw": annotation.tags or [],
+        "group": annotation.groupid,
+        "shared": annotation.shared,
+        "target": [target],
+        "document": document,
+        "thread_ids": annotation.thread_ids,
+    }
+
+    result["target"][0]["scope"] = [annotation.target_uri_normalized]
+
+    if annotation.references:
+        result["references"] = annotation.references
+
+    # Mark an annotation as hidden if it and all of it's children have been
+    # moderated and hidden.
+    parents_and_replies = [annotation.id] + annotation.thread_ids
+
+    result["hidden"] = len(hidden_annotations(parents_and_replies)) == len(
+        parents_and_replies
+    )
+
+    return result

@@ -709,17 +709,20 @@ class TestHiddenFilter(object):
         pyramid_request,
         search,
         user,
-        AnnotationSearchIndexPresenter,
+        format_annotation,
         nipsa,
         hidden,
         should_show_annotation,
     ):
         pyramid_request.user = user
         search.append_modifier(query.HiddenFilter(pyramid_request))
-        presenter = AnnotationSearchIndexPresenter.return_value
-        presenter.asdict.return_value = {"id": "ann1", "hidden": hidden, "nipsa": nipsa}
+        format_annotation.return_value = {
+            "id": "ann1",
+            "hidden": hidden,
+            "nipsa": nipsa,
+        }
         Annotation(id="ann1")
-        presenter.asdict.return_value = {"id": "ann2", "hidden": False, "nipsa": False}
+        format_annotation.return_value = {"id": "ann2", "hidden": False, "nipsa": False}
         Annotation(id="ann2", userid=user.userid)
         expected_ids = ["ann2"]
         if should_show_annotation:
@@ -1069,9 +1072,7 @@ def es_dsl_search(pyramid_request):
 
 
 @pytest.fixture
-def AnnotationSearchIndexPresenter(patch):
-    AnnotationSearchIndexPresenter = patch(
-        "h.search.index.presenters.AnnotationSearchIndexPresenter"
-    )
-    AnnotationSearchIndexPresenter.return_value.asdict.return_value = {"test": "val"}
-    return AnnotationSearchIndexPresenter
+def format_annotation(patch):
+    format_annotation = patch("h.search.index.format_annotation")
+    format_annotation.return_value = {"test": "val"}
+    return format_annotation

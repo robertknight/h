@@ -29,27 +29,20 @@ class TestIndex(object):
         assert result["_id"] == annotation.id
 
     def test_it_indexes_presented_annotation(
-        self,
-        factories,
-        get_indexed_ann,
-        index,
-        pyramid_request,
-        AnnotationSearchIndexPresenter,
+        self, factories, get_indexed_ann, index, pyramid_request, format_annotation
     ):
         annotation = factories.Annotation.build()
-        presenter = AnnotationSearchIndexPresenter.return_value
-        presenter.asdict.return_value = {
+        format_annotation.return_value = {
             "id": annotation.id,
             "some_other_field": "a_value",
         }
 
         index(annotation)
         indexed_ann = get_indexed_ann(annotation.id)
+        moderation_svc = pyramid_request.find_service(name="annotation_moderation")
 
-        AnnotationSearchIndexPresenter.assert_called_once_with(
-            annotation, pyramid_request
-        )
-        assert indexed_ann == presenter.asdict.return_value
+        format_annotation.assert_called_once_with(annotation, moderation_svc.all_hidden)
+        assert indexed_ann == format_annotation.return_value
 
     def test_it_can_index_an_annotation_with_no_document(
         self, factories, index, get_indexed_ann
@@ -325,18 +318,16 @@ class TestIndex(object):
         assert SearchResponseWithIDs([annotation2.id]) == response
 
     def test_you_can_filter_annotations_by_hidden(
-        self, AnnotationSearchIndexPresenter, factories, index, search
+        self, format_annotation, factories, index, search
     ):
         annotation1 = factories.Annotation.build()
         annotation2 = factories.Annotation.build()
 
-        presenter = AnnotationSearchIndexPresenter.return_value
-        presenter.asdict.return_value = {"id": annotation1.id, "hidden": True}
+        format_annotation.return_value = {"id": annotation1.id, "hidden": True}
 
         index(annotation1)
 
-        presenter = AnnotationSearchIndexPresenter.return_value
-        presenter.asdict.return_value = {"id": annotation2.id, "hidden": False}
+        format_annotation.return_value = {"id": annotation2.id, "hidden": False}
 
         index(annotation2)
 
@@ -447,7 +438,7 @@ class TestBatchIndexer(object):
 
     def test_it_notifies(
         self,
-        AnnotationSearchIndexPresenter,
+        format_annotation,
         AnnotationTransformEvent,
         batch_indexer,
         factories,
@@ -462,13 +453,7 @@ class TestBatchIndexer(object):
 
         for annotation in annotations:
             AnnotationTransformEvent.assert_has_calls(
-                [
-                    mock.call(
-                        pyramid_request,
-                        annotation,
-                        AnnotationSearchIndexPresenter.return_value.asdict.return_value,
-                    )
-                ]
+                [mock.call(pyramid_request, annotation, format_annotation.return_value)]
             )
             notify.assert_has_calls([mock.call(event)])
 
@@ -545,6 +530,22 @@ class TestBatchIndexer(object):
         assert errored == expected_errored_ids
 
 
+class TestFormatAnnotation(object):
+    # TODO
+
+    def test_it_produces_expected_json_output(self):
+        pass
+
+    def test_it_sets_document_title_if_document_has_title(self):
+        pass
+
+    def test_it_sets_document_web_uri_if_document_has_web_uri(self):
+        pass
+
+    def test_it_sets_hidden_flat_if_all_annotations_in_thread_hidden(self):
+        pass
+
+
 class SearchResponseWithIDs(Matcher):
     """
     Matches an elasticsearch_dsl response with the given annotation ids.
@@ -576,10 +577,10 @@ def AnnotationTransformEvent(patch):
 
 
 @pytest.fixture
-def AnnotationSearchIndexPresenter(patch):
-    class_ = patch("h.search.index.presenters.AnnotationSearchIndexPresenter")
-    class_.return_value.asdict.return_value = {"test": "val"}
-    return class_
+def format_annotation(patch):
+    format_annotation = patch("h.search.index.format_annotation")
+    format_annotation.return_value = {"test": "val"}
+    return format_annotation
 
 
 @pytest.fixture
